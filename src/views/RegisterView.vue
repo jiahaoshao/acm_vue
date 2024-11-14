@@ -1,0 +1,234 @@
+<template>
+    <div class="register_container">
+      <div class="register_box">
+        <!-- 头像区域 -->
+        <div class="avatar_box">
+          <img src="../assets/logo.png" alt="" />
+        </div>
+        <!-- 表单区域 -->
+        <el-form :model="registerForm" ref="registerFormRef" :rules="registerFormRules" label-width="0px" class="register_form">
+          <el-form-item prop="username">
+            <el-input v-model="registerForm.username" prefix-icon="User" placeholder="请输入用户名"></el-input>
+          </el-form-item>
+          <el-form-item prop="phone">
+            <el-input v-model="registerForm.phone" prefix-icon="PhoneFilled" placeholder="请输入手机号码"></el-input>
+          </el-form-item>
+          <el-form-item prop="email">
+            <el-input v-model="registerForm.email" prefix-icon="Message" placeholder="请输入邮箱地址"></el-input>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input v-model="registerForm.password" prefix-icon="Lock" type="password" placeholder="请输入密码"></el-input>
+          </el-form-item>
+          <el-form-item prop="confirmPassword">
+            <el-input v-model="registerForm.confirmPassword" prefix-icon="Lock" type="password" placeholder="请确认密码"></el-input>
+          </el-form-item>
+          <el-form-item prop="code">
+            <el-row :span="24">
+              <el-col :span="12">
+                <el-input v-model="registerForm.code" auto-complete="off" placeholder="请输入邮箱验证码"></el-input>
+              </el-col>
+              <el-col :span="12">
+                <el-button :disabled="isCodeSent" type="primary" @click="sendEmailCode">
+                  {{ isCodeSent ? '已发送' : '发送验证码' }}
+                </el-button>
+              </el-col>
+            </el-row>
+          </el-form-item>
+          <el-form-item class="btn">
+            <el-button type="primary" @click="SignUp">注册</el-button>
+            <el-button type="info" @click="goToLogin">已有账号？登录</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+  </template>
+  <script>
+  import JSEncrypt from 'jsencrypt/bin/jsencrypt';
+  export default {
+    data() {
+      return {
+        registerForm: {
+          username: 'admin',
+          phone: '15727931358',        
+          email: '2370145097@qq.com',        
+          password: '123456',
+          confirmPassword: '123456',
+          code: '1' 
+        },
+        registerFormRules: {
+          username: [
+            { required: true, message: '请输入用户名', trigger: 'blur' },
+            { min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur' }
+          ],
+          phone: [
+            { required: true, message: '请输入手机号码', trigger: 'blur' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码', trigger: 'blur' }
+          ],
+          email: [
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+            { pattern: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/, message: '请输入有效的邮箱地址', trigger: 'blur' }
+          ],
+          password: [
+            { required: true, message: '请输入密码', trigger: 'blur' },
+            { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }
+          ],
+          confirmPassword: [
+            { required: true, message: '请确认密码', trigger: 'blur' },
+            { validator: this.checkPasswordMatch, trigger: 'blur' }
+          ],
+          code: [{ required: true, message: "请输入验证码", trigger: "blur" }]
+        },
+        publicKey: '',
+        // 发送验证码的状态
+        isCodeSent: false,
+        emailCode: '' // 存储从后台获取的验证码
+      };
+    },
+    created() {
+    this.getPublickey();
+  },
+    methods: {
+      sendEmailCode() {
+        if (!this.registerForm.email) {
+          this.$message.error("请输入邮箱地址");
+          return;
+        }
+        // 请求后端发送验证码
+        try {
+          this.$api.signApi.getEmailVerifyCode({
+            email: this.registerForm.email
+          })
+          .then(response => {
+            //console.log(response)
+            if (response.data.code === 0) {
+              this.$message.success("验证码已发送，请查收邮箱");
+              this.isCodeSent = true;  // 设置按钮为已发送状态
+              this.emailCode = response.data.data;
+              console.log(this.emailCode)
+              // 启动一个倒计时，避免用户频繁点击发送验证码按钮
+              setTimeout(() => {
+              this.isCodeSent = false; // 倒计时结束，恢复按钮
+              }, 60000); // 1分钟后按钮恢复
+            } else {
+              this.$message.error(response.data.message);
+            }
+          })
+        } catch (error) {
+          console.error("Error: ", error);
+          this.$message.error("发送验证码失败，请重试");
+        }
+      },
+      
+      checkPasswordMatch(rule, value, callback) {
+        if (value !== this.registerForm.password) {
+          callback(new Error("两次输入的密码不一致"));
+        } else {
+          callback();
+        }
+      },
+       // 注册函数
+      SignUp () {
+        const that = this;
+        // that.getPublickey();
+        that.$refs.registerFormRef.validate(async (valid) => {
+        if (!valid) return; // 表单不合法，不执行登录
+        // 表单合法，执行登录请求
+        if (that.registerForm.code != that.emailCode) {
+          that.$message.error("验证码错误！");
+          return; // 验证码错误，阻止登录请求
+        }
+
+        const crypt = new JSEncrypt();
+        crypt.setPublicKey(that.publicKey);
+
+        const res = await that.$api.signApi.signup({
+          userAccount: that.registerForm.username,
+          password: crypt.encrypt(that.registerForm.password), //加密密码
+          email: that.registerForm.email,
+          phone: that.registerForm.phone
+        });
+        console.log(res);
+        if (res.data.code === 0) {
+          that.$message.success(res.data.message);
+          that.$router.push("/login");
+        } else {
+          that.$message.error(res.data.message);
+        }
+        })
+    },
+    getPublickey() {
+      const that = this;
+      try {
+	        // 此处为调用后端接口。
+	         that.$api.signApi.getPublicKey()
+           .then(response => {
+            //console.log(response)
+            if (response.data.code === 0) {
+	              that.publicKey = response.data.data;
+	          }
+           })
+	    }
+	     catch (error) {
+        that.$message.error(error.message);
+	    }
+    },
+      goToLogin() {
+        this.$router.push("/login");
+      }
+    },
+    
+  };
+  </script>
+  <style lang="less" scoped>
+    .register_container {
+        background-color: #2b4b6b;
+        height: 100%;
+    }
+  
+    .register_box {
+        width: 450px;
+        height: 600px; /* 增加高度，适应更多表单项 */
+        background-color: #fff;
+        border-radius: 3px; 
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+  
+    .avatar_box {
+        height: 130px;
+        width: 130px;
+        background-color: #fff;
+        border: 1px solid #eee;
+        border-radius: 50%;
+        padding: 10px;
+        box-shadow: 0 0 10px #ddd;
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+  
+    .avatar_box img {
+      height: 100%;
+      width: 100%;
+      border-radius: 50%;
+      background-color: #eee;
+    }
+  
+    .register_form {
+      position: absolute;
+      bottom: 0px;
+      width: 100%;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+  
+    .btn {
+      display: flex;
+      justify-content: flex-end;
+    }
+  </style>
+  
+    
+   
