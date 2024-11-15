@@ -58,7 +58,8 @@
 <script>
 /* eslint-disable */
 import axios from 'axios';
-import JSEncrypt from 'jsencrypt/bin/jsencrypt';
+import JSEncrypt from 'jsencrypt';
+// import JSEncrypt from 'jsencrypt/bin/jsencrypt';
 import SIdentify from "../components/SIdentify"
 import { mapMutations } from 'vuex';
 
@@ -99,7 +100,8 @@ export default {
       // 定义生成的验证码
       identifyCode: '',
       showCode: false,
-      count: 0
+      count: 0,
+      enpassword: ''
     }
   },
   mounted () {
@@ -143,10 +145,12 @@ export default {
 
         const crypt = new JSEncrypt();
         crypt.setPublicKey(that.publicKey);
-
+        that.enpassword = crypt.encrypt(that.loginForm.password);
+        console.log(that.enpassword);
+        // console.log(crypt.encrypt(that.loginForm.password));
         const res = await that.$api.signApi.signin({
           userAccount: that.loginForm.username,
-          password: crypt.encrypt(that.loginForm.password) //加密密码
+          password: that.enpassword //加密密码
         });
         console.log(res);
         //that.userToken = 'Bearer ' + res.data.data.body.token;  // 将用户token保存到vuex中
@@ -154,6 +158,7 @@ export default {
        if (res.data.code === 0) {
           that.count = 0;
           that.$message.success(res.data.message);
+          this.$router.push('/home');	   
           that.resetloginForm();
         } else {
           that.$message.error(res.data.message);
@@ -176,7 +181,7 @@ export default {
            console.log(response)
 	         if (response.data.code === 0) {
 	              that.publicKey = response.data.data;
-	          }
+                     }
 	    }
 	     catch (error) {
         that.$message.error(error.message);
