@@ -72,7 +72,7 @@
         </el-form-item>
         <el-form-item class="btn">
           <el-button type="primary" @click="SignUp">注册</el-button>
-          <el-button type="info" to="/login">已有账号？登录</el-button>
+          <el-button type="info" @click="toLogin">已有账号？登录</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -209,6 +209,9 @@ const getPublickey = () => {
     $message.error('获取公钥失败');
   }
 };
+const toLogin = () => {
+  router.push('/login');
+}
 
 onMounted(() => {
   getPublickey();
