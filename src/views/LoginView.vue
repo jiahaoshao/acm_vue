@@ -143,7 +143,7 @@ const Signin = async () => {
       userAccount: loginForm.username,
       password: encryptedPwd(loginForm.password)
     });
-    console.log(response);
+    // console.log(response);
     if (response.data.code === 0) {
       count.value = 0;
       showCode.value = false;
