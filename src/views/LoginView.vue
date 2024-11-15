@@ -54,142 +54,144 @@
   </div>
 </template>
 
+<script setup>
+import { ref, reactive, onMounted, computed, getCurrentInstance } from 'vue';
+import JSEncrypt from 'jsencrypt/bin/jsencrypt';
+import SIdentify from "../components/SIdentify";
+import { useRouter, useRoute } from 'vue-router';
 
-<script>
-/* eslint-disable */
-import axios from 'axios';
-import JSEncrypt from 'jsencrypt';
-// import JSEncrypt from 'jsencrypt/bin/jsencrypt';
-import SIdentify from "../components/SIdentify"
-import { mapMutations } from 'vuex';
+// 引入 store 和 router
+const router = useRouter();
+const route = useRoute();
+const instance = getCurrentInstance(); 
+const $message = instance.appContext.config.globalProperties.$message;
+const $api = instance.appContext.config.globalProperties.$api;
 
-export default {
-  name: "login",
-  components: { SIdentify },
-  data () {
-    return {
-      // 登录表单的数据绑定对象
-      loginForm: {
-        username: 'admin',
-        password: '123456'
-      },
-      // 表单验证规则对象
-      loginFormRules: {
-        username: [
-          { required: true, message: '请输入登录名', trigger: 'blur' },
-          {
-            min: 3,
-            max: 10,
-            message: '长度在 3 到 10 个字符',
-            trigger: 'blur'
-          }
-        ],
-        password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
-          {
-            min: 6,
-            max: 15,
-            message: '长度在 6 到 15 个字符',
-            trigger: 'blur'
-          }
-        ]
-      },
-      publicKey: '',
-      // 定义验证码的字符集
-      identifyCodes: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
-      // 定义生成的验证码
-      identifyCode: '',
-      showCode: false,
-      count: 0,
-      enpassword: ''
+// 表单引用 
+const loginFormRef = ref(null);
+
+// 登录表单的数据绑定对象
+const loginForm = reactive({
+  username: 'admin',
+  password: '123456'
+});
+
+// 表单验证规则对象
+const loginFormRules = {
+  username: [
+    { required: true, message: '请输入登录名', trigger: 'blur' },
+    {
+      min: 3,
+      max: 10,
+      message: '长度在 3 到 10 个字符',
+      trigger: 'blur'
     }
-  },
-  mounted () {
-    // 初始化验证码
-    this.identifyCode = ''
-    this.makeCode(this.identifyCodes, 4)
-  },
-  created() {
-    this.getPublickey();
-    this.refreshCode();
-  },
-  methods: {
-    ...mapMutations(['changeLogin']),
-    refreshCode () {
-      this.identifyCode = ''
-      this.makeCode(this.identifyCodes, 4)
-    },
-    makeCode (o, l) {
-      for (let i = 0; i < l; i++) {
-        this.identifyCode += this.identifyCodes[this.randomNum(0, this.identifyCodes.length)]
-      }
-    },
-    randomNum (min, max) {
-      return Math.floor(Math.random() * (max - min) + min)
-    },
-    // 点击重置按钮，重置登录表单
-    resetloginForm () {
-      this.$refs.loginFormRef.resetFields();
-    },
-    // 登录函数
-    Signin () {
-      const that = this;
-      // that.getPublickey();
-      that.$refs.loginFormRef.validate(async (valid) => {
-        if (!valid) return; // 表单不合法，不执行登录
-        // 表单合法，执行登录请求
-        // if (that.loginForm.code !== that.identifyCode) {
-        //   that.$message.error("验证码错误！");
-        //   return; // 验证码错误，阻止登录请求
-        // }
-
-        const crypt = new JSEncrypt();
-        crypt.setPublicKey(that.publicKey);
-        that.enpassword = crypt.encrypt(that.loginForm.password);
-        console.log(that.enpassword);
-        // console.log(crypt.encrypt(that.loginForm.password));
-        const res = await that.$api.signApi.signin({
-          userAccount: that.loginForm.username,
-          password: that.enpassword //加密密码
-        });
-        console.log(res);
-        //that.userToken = 'Bearer ' + res.data.data.body.token;  // 将用户token保存到vuex中
-        that.changeLogin({ Authorization: that.userToken });
-       if (res.data.code === 0) {
-          that.count = 0;
-          that.$message.success(res.data.message);
-          this.$router.push('/home');	   
-          that.resetloginForm();
-        } else {
-          that.$message.error(res.data.message);
-          that.count ++;
-          if (that.count >= 3) that.showCode = true;
-        }
-      })
-    },
-    Signup() {
-      this.$router.push("/register")
-    },
-    Findpsw() {
-      this.$router.push("/resetpsw")
-    },
-    async getPublickey() {
-      const that = this;
-      try {
-	        // 此处为调用后端接口。
-	         const response = await that.$api.signApi.getPublicKey();
-           console.log(response)
-	         if (response.data.code === 0) {
-	              that.publicKey = response.data.data;
-                     }
-	    }
-	     catch (error) {
-        that.$message.error(error.message);
-	    }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      min: 6,
+      max: 15,
+      message: '长度在 6 到 15 个字符',
+      trigger: 'blur'
     }
+  ]
+};
+
+const publicKey = ref('');
+const identifyCodes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split('');
+const identifyCode = ref('');
+const showCode = ref(false);
+const count = ref(0);
+
+// 初始化验证码
+const refreshCode = () => {
+  identifyCode.value = '';
+  makeCode(identifyCodes, 4);
+};
+
+const makeCode = (o, l) => {
+  for (let i = 0; i < l; i++) {
+    identifyCode.value += o[randomNum(0, o.length)];
   }
-}
+};
+
+const randomNum = (min, max) => {
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
+const resetloginForm = () => {
+  loginFormRef.value.resetFields();
+};
+
+const Signin = async () => {
+  // 表单验证（简化示例）
+  if (!loginForm.username || !loginForm.password) {
+    $message.error('请填写完整的登录信息');
+    return;
+  }
+
+  if((loginForm.code !== identifyCode.value) && showCode.value){
+    refreshCode();
+    $message.error('验证码错误!');
+    return;
+  }
+
+  const crypt = new JSEncrypt();
+  crypt.setPublicKey(publicKey.value);
+
+  try {
+    const response = await $api.signApi.signin({
+      userAccount: loginForm.username,
+      password: crypt.encrypt(loginForm.password)
+    });
+    console.log(response);
+    if (response.data.code === 0) {
+      count.value = 0;
+      showCode.value = false;
+      $message.success('登录成功');
+      resetloginForm();
+    } else {
+      $message.error(response.data.message);
+      count.value++;
+      if (count.value >= 3) showCode.value = true;
+      refreshCode();
+    }
+  } catch (error) {
+    console.error(error);
+    $message.error('登录失败');
+  }
+};
+
+const Signup = () => {
+  router.push("/register");
+};
+
+const getPublickey = () => {
+  try {
+    $api.signApi.getPublicKey()
+    .then((response) => {
+      console.log(response);
+      if (response.data.code === 0) {
+        publicKey.value = response.data.data;
+      }
+    })
+  } catch (error) {
+    console.error(error);
+    $message.error('获取公钥失败');
+  }
+};
+
+onMounted(() => {
+  getPublickey();
+  // 自动填写用户名和密码
+  loginForm.username = route.query.username || loginForm.username;
+  loginForm.password = route.query.password || loginForm.password;
+});
 </script>
+
+
+
 
 <style lang="less" scoped>
 .login_container {
