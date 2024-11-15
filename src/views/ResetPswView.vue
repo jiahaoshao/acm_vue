@@ -87,9 +87,12 @@ import { ref, reactive, onMounted, getCurrentInstance } from "vue";
 import JSEncrypt from "jsencrypt/bin/jsencrypt";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-const instance = getCurrentInstance();
-const $message = instance.appContext.config.globalProperties.$message;
-const $api = instance.appContext.config.globalProperties.$api;
+import { ElMessage } from "element-plus";
+import { encryptedPwd, getKey } from "@/utils/encrypt";
+
+const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $message = ElMessage
+const $api = globalProperties.$api
 const router = useRouter();
 const store = useStore();
 const resetFormRef = ref(null);
@@ -168,13 +171,11 @@ const onSubmit = async () => {
       $message.error("验证码错误！");
       return;
     }
-    const crypt = new JSEncrypt();
-    crypt.setPublicKey(publicKey.value);
     try {
       const res = await $api.signApi.resetPassword({
         userAccount: resetForm.username,
         email: resetForm.email,
-        password: crypt.encrypt(resetForm.newPassword),
+        password: encryptedPwd(resetForm.newPassword),
       });
       if (res.data.code === 0) {
         $message.success(res.data.message);
@@ -187,18 +188,8 @@ const onSubmit = async () => {
     }
   });
 };
-const getPublickey = async () => {
-  try {
-    const response = await $api.signApi.getPublicKey();
-    if (response.data.code === 0) {
-      publicKey.value = response.data.data;
-    }
-  } catch (error) {
-    $message.error(error.message);
-  }
-};
 onMounted(() => {
-  getPublickey();
+  getKey();
 });
 </script>
   

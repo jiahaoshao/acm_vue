@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElMessage } from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
 import './styles/index.less' // 导入全局样式
@@ -20,7 +20,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 // 将各模块api挂载在vue实例上
 app.config.globalProperties.$api = api
-app.config.globalProperties.$message = ElementPlus.ElMessage
+app.provide('$api', api)
 //axios.defaults.baseURL = 'http://26.201.192.85:8181'
 axios.defaults.withCredentials = true
 axios.defaults.timeout = 10000

@@ -25,8 +25,8 @@ const signApi = {
     return axios.get('/sign/getemailverifycode', {params: params});
   },
   //获取公钥
-  getPublicKey(){
-    return axios.get('/sign/getpublickey');
+  getKey(){
+    return axios.get('/sign/getkey');
   },
   //重置密码
   resetPassword(params){

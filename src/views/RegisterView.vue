@@ -81,11 +81,13 @@
 
   <script setup>
 import { ref, reactive, onMounted, getCurrentInstance } from "vue";
-import JSEncrypt from "jsencrypt/bin/jsencrypt";
 import { useRouter } from "vue-router";
-const instance = getCurrentInstance();
-const $message = instance.appContext.config.globalProperties.$message;
-const $api = instance.appContext.config.globalProperties.$api;
+import { ElMessage } from "element-plus";
+import { encryptedPwd, getKey } from "@/utils/encrypt";
+
+const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $message = ElMessage
+const $api = globalProperties.$api
 const router = useRouter();
 const registerFormRef = ref(null);
 const registerForm = reactive({
@@ -173,11 +175,10 @@ const SignUp = async () => {
       $message.error("验证码错误！");
       return;
     }
-    const crypt = new JSEncrypt();
-    crypt.setPublicKey(publicKey.value);
+
     const res = await $api.signApi.signup({
       userAccount: registerForm.username,
-      password: crypt.encrypt(registerForm.password),
+      password: encryptedPwd(registerForm.password),
       email: registerForm.email,
       phone: registerForm.phone,
     });
@@ -187,7 +188,7 @@ const SignUp = async () => {
         path: 'login',
         query: {
           username: registerForm.username,
-          password: registerForm.password
+          password: encryptedPwd(registerForm.password)
         }
       })
     } else {
@@ -195,26 +196,12 @@ const SignUp = async () => {
     }
   });
 };
-const getPublickey = () => {
-  try {
-    $api.signApi.getPublicKey()
-    .then((response) => {
-      console.log(response);
-      if (response.data.code === 0) {
-        publicKey.value = response.data.data;
-      }
-    })
-  } catch (error) {
-    console.error(error);
-    $message.error('获取公钥失败');
-  }
-};
 const toLogin = () => {
   router.push('/login');
 }
 
 onMounted(() => {
-  getPublickey();
+  getKey();
 });
 </script>
   <style lang="less" scoped>

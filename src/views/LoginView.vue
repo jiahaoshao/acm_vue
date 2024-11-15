@@ -55,17 +55,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, getCurrentInstance } from 'vue';
-import JSEncrypt from 'jsencrypt/bin/jsencrypt';
+import { ref, reactive, onMounted, getCurrentInstance } from 'vue';
 import SIdentify from "../components/SIdentify";
 import { useRouter, useRoute } from 'vue-router';
+import { encryptedPwd, decryptedPwd, getKey } from '@/utils/encrypt';
+import { ElMessage } from 'element-plus';
 
 // 引入 store 和 router
 const router = useRouter();
 const route = useRoute();
-const instance = getCurrentInstance(); 
-const $message = instance.appContext.config.globalProperties.$message;
-const $api = instance.appContext.config.globalProperties.$api;
+const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $message = ElMessage
+const $api = globalProperties.$api
 
 // 表单引用 
 const loginFormRef = ref(null);
@@ -137,13 +138,10 @@ const Signin = async () => {
     return;
   }
 
-  const crypt = new JSEncrypt();
-  crypt.setPublicKey(publicKey.value);
-
   try {
     const response = await $api.signApi.signin({
       userAccount: loginForm.username,
-      password: crypt.encrypt(loginForm.password)
+      password: encryptedPwd(loginForm.password)
     });
     console.log(response);
     if (response.data.code === 0) {
@@ -168,31 +166,13 @@ const Signup = () => {
   router.push("/register");
 };
 
-const getPublickey = () => {
-  try {
-    $api.signApi.getPublicKey()
-    .then((response) => {
-      console.log(response);
-      if (response.data.code === 0) {
-        publicKey.value = response.data.data;
-      }
-    })
-  } catch (error) {
-    console.error(error);
-    $message.error('获取公钥失败');
-  }
-};
-
 onMounted(() => {
-  getPublickey();
+  getKey();
   // 自动填写用户名和密码
   loginForm.username = route.query.username || loginForm.username;
-  loginForm.password = route.query.password || loginForm.password;
+  loginForm.password = decryptedPwd(route.query.password) || loginForm.password;
 });
 </script>
-
-
-
 
 <style lang="less" scoped>
 .login_container {
