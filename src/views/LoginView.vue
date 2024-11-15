@@ -150,6 +150,7 @@ const Signin = async () => {
       count.value = 0;
       showCode.value = false;
       $message.success('登录成功');
+      router.push('/home')
       resetloginForm();
     } else {
       $message.error(response.data.message);

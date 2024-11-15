@@ -16,10 +16,10 @@ const routes = [
     path:'/home',
     component:home,
     children:[
-      // {
-      //   path: '',  // 默认子路由，如果访问 /home，会直接加载 home2 组件
-      //   redirect: 'home2',  // 默认重定向到 home2
-      // },
+      {
+        path: '',  // 默认子路由，如果访问 /home，会直接加载 home2 组件
+        redirect: '/home/home2',  // 默认重定向到 home2
+      },
       {
         path: 'home2',  // home2 子路由
         component: home2
