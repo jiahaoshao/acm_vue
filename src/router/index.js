@@ -7,6 +7,7 @@ import info from '@/views/Info.vue'
 import ai from '@/views/AssistAi.vue'
 import about from '@/views/About.vue'
 import home2 from '@/views/InsideHome.vue'
+import { ElMessage } from 'element-plus'
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: login },
@@ -44,5 +45,22 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
+
+//路由全局前置守卫
+router.beforeEach((to,from,next) => {
+  if(to.path === '/register' || to.path === '/login' || to.path === '/' || to.path === '/resetpsw'){ //若是进入登录与注册页面 ==> pass
+    next()
+  }else{ 
+    let userToken = localStorage.getItem('token');
+    console.log("Token为:"+userToken); 
+    if(userToken == null || userToken == ''){
+      ElMessage.error("无权限，请先登录!");
+      return next('/login');
+    }else{
+      next();
+    }
+  }
+})
+
 
 export default router

@@ -1,31 +1,25 @@
-// 不需要 import Vue 和 Vuex 2.x 的用法
 import { createStore } from 'vuex';
-import axios from 'axios';
+
 export default createStore({
   state: {
-    // 存储token
-    Authorization: localStorage.getItem('Authorization') ? localStorage.getItem('Authorization') : ''
+    user: localStorage.getItem('user') ? localStorage.getItem('user') : null,
+    //若localSorage存在token，将值赋给Vuex.state.token
+    token: localStorage.getItem('token') ? localStorage.getItem('token') : null,
   },
-  getters: {},
   mutations: {
-    // 修改token，并将token存入localStorage
-    changeLogin(state, user) {
-      state.Authorization = user.Authorization;
-      localStorage.setItem('Authorization', user.Authorization);
+    setUser(state, user) {
+      state.user = user
+      localStorage.setItem('user', JSON.stringify(user))
+    },
+    setToken(state, token) {
+      localStorage.setItem('token', token)
+      state.token = token
+    },
+    logout(state) {
+      localStorage.removeItem('token')
+      state.token = null
+      localStorage.removeItem('user')
+      state.user = null
     }
-  },
-  actions: {},
-  modules: {}
-});
-axios.interceptors.request.use(
-  config => {
-    const token = createStore.state.token;
-    if (token) {
-      config.headers.Authorization = token;
-    }
-    return config;
-  },
-  error => {
-    return Promise.reject(error);
   }
-);
+})

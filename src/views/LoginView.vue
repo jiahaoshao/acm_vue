@@ -59,13 +59,14 @@ import { ref, reactive, onMounted, getCurrentInstance } from 'vue';
 import SIdentify from "../components/SIdentify";
 import { useRouter, useRoute } from 'vue-router';
 import { encryptedPwd, decryptedPwd, getKey } from '@/utils/encrypt';
+import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus';
 
 // 引入 store 和 router
 const router = useRouter();
 const route = useRoute();
+const store = useStore();
 const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
-const $message = ElMessage
 const $api = globalProperties.$api
 
 // 表单引用 
@@ -128,13 +129,13 @@ const resetloginForm = () => {
 const Signin = async () => {
   // 表单验证（简化示例）
   if (!loginForm.username || !loginForm.password) {
-    $message.error('请填写完整的登录信息');
+    ElMessage.error('请填写完整的登录信息');
     return;
   }
 
   if((loginForm.code !== identifyCode.value) && showCode.value){
     refreshCode();
-    $message.error('验证码错误!');
+    ElMessage.error('验证码错误!');
     return;
   }
 
@@ -143,22 +144,24 @@ const Signin = async () => {
       userAccount: loginForm.username,
       password: encryptedPwd(loginForm.password)
     });
-    // console.log(response);
-    if (response.data.code === 0) {
+     console.log(response);
+    if (response.data.code === 200) {
       count.value = 0;
       showCode.value = false;
-      $message.success('登录成功');
+      store.commit('setToken',response.data.token)
+      store.commit('setUser',response.data.user)
+      ElMessage.success(response.data.msg);
       router.push('/home')
       resetloginForm();
     } else {
-      $message.error(response.data.message);
+      ElMessage.error(response.data.msg);
       count.value++;
       if (count.value >= 3) showCode.value = true;
       refreshCode();
     }
   } catch (error) {
     console.error(error);
-    $message.error('登录失败');
+    ElMessage.error('登录失败');
   }
 };
 

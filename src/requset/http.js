@@ -5,13 +5,14 @@ import App from '@/App.vue'
 import axios from 'axios';
 import router from '../router';
 import store from '../store/index';
+import { ElMessage } from 'element-plus';
 
 
 const toSignin = function (msg) {
   store.dispatch("clearUserInfo");
 
   var message = msg ? msg : "session过期，即将前往登录页面";
-  this.$message.error({showClose: true, message: message, duration: 3000, onClose: function () {
+  ElMessage.error({showClose: true, message: message, duration: 3000, onClose: function () {
       router.replace({path: '/login', query: {redirect: router.currentRoute.fullPath}
       });
   }});
@@ -24,7 +25,7 @@ const errorHandle = (status, other) => {
   // 状态码判断
   switch (status) {
     case 400:
-      this.$message.error("请求参数有误！");
+      ElMessage.error("请求参数有误！");
       break;
     // 401: 未登录状态，跳转登录页
     case 401:
@@ -34,17 +35,17 @@ const errorHandle = (status, other) => {
     // 403 token过期
     // 清除token并跳转登录页
     case 403:
-      this.$message.error({showClose: true, message: "没有操作权限！", duration: 3000});
+      ElMessage.error({showClose: true, message: "没有操作权限！", duration: 3000});
       break;
     // 404请求不存在
     case 404:
-      this.$message.error({showClose: true, message: "请求不存在", duration: 3000});
+      ElMessage.error({showClose: true, message: "请求不存在", duration: 3000});
       break;
     case 500:
-      this.$message.error({showClose: true, message: "请求失败，服务器内部错误", duration: 3000});
+      ElMessage.error({showClose: true, message: "请求失败，服务器内部错误", duration: 3000});
       break;
     case 504:
-      this.$message.error({showClose: true, message: "与服务器连接失败！", duration: 3000});
+      ElMessage.error({showClose: true, message: "与服务器连接失败！", duration: 3000});
       break;
     default:
       console.log(other);
@@ -67,9 +68,12 @@ var instance = axios.create({
 instance.interceptors.request.use(
   function(config) {
     console.log('请求拦截1')
-    const newConfig = config;
-    Object.assign(newConfig.headers, { 'x-token': 'some-token' });
-    return newConfig;
+    // const newConfig = config;
+    // Object.assign(newConfig.headers, { 'x-token': 'some-token' });
+    if(localStorage.getItem('token')){
+      config.headers.token = localStorage.getItem('token');
+    }
+    return config;
   },
   function(error) {
     // do......
@@ -119,7 +123,7 @@ instance.interceptors.response.use(
       if(error.code == 'ECONNABORTED' && error.message.indexOf('timeout')!=-1 && !originalRequest._retry){
         // originalRequest._retry = true
         // return axios.request(originalRequest);
-        this.$message.error({showClose: true, message: "请求超时，请稍后重试！", duration: 3000});
+        ElMessage.error({showClose: true, message: "请求超时，请稍后重试！", duration: 3000});
         return Promise.reject(response);
       }else{
 
