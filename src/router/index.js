@@ -8,6 +8,7 @@ import ai from '@/views/AssistAi.vue'
 import about from '@/views/About.vue'
 import home2 from '@/views/InsideHome.vue'
 import { ElMessage } from 'element-plus'
+import Test from '@/views/test.vue'
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: login },
@@ -38,7 +39,8 @@ const routes = [
         component:about
       }
     ]
-  }
+  },
+  { path: '/test', component: Test}
 ]
 
 const router = createRouter({

@@ -5,7 +5,6 @@
 import axios from '@/requset/http';
 // import axios from 'axios';
 import querystring from 'querystring';
-import base from '@/requset/api/base'
 
 const signApi = {
   //登录

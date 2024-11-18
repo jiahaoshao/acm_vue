@@ -1,7 +1,5 @@
 /* eslint-disable */
 //封装axios
-import { createApp } from 'vue'
-import App from '@/App.vue'
 import axios from 'axios';
 import router from '../router';
 import store from '../store/index';
@@ -132,5 +130,5 @@ instance.interceptors.response.use(
   }
 );
 
-export default instance;
+export default instance
 
