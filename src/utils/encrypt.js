@@ -20,7 +20,7 @@ const MAX_DECRYPT_BLOCK = 128
  * @description RSA加密(支持长字符加密)
  */
 const encryptedPwd = (pwd) => {
-    //getKey();
+    // getKey();
     //创建实例
     const encrypt = new JSEncrypt()
     // 设置公钥
@@ -44,7 +44,7 @@ const getKey = () => {
     try {
         $api.signApi.getKey()
             .then((response) => {
-                console.log(response);
+                // console.log(response);
                 if (response.data.code === 0) {
                     publicKey = response.data.data.publicKey;
                     privateKey = response.data.data.privateKey;

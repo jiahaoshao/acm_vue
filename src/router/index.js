@@ -7,6 +7,9 @@ import info from '@/views/Info.vue'
 import ai from '@/views/AssistAi.vue'
 import about from '@/views/About.vue'
 import home2 from '@/views/InsideHome.vue'
+import changeInfo from '@/views/ChangeInfo.vue'
+import changePassword from '@/views/ChangePassword.vue'
+import confirmPassword from '@/views/ConfirmPassword.vue'
 import { ElMessage } from 'element-plus'
 const routes = [
   { path: '/', redirect: '/login' },
@@ -27,7 +30,7 @@ const routes = [
       },
       {
         path:'info',
-        component:info
+        component:info,
       },
       {
         path:'ai',
@@ -36,7 +39,20 @@ const routes = [
       {
         path:'about',
         component:about
+      },
+      {
+        path:'changeInfo',
+        component:changeInfo
+      },
+      {
+        path:'changePassword',
+        component:changePassword
+      },
+      {
+        path:'confirmPassword',
+        component:confirmPassword
       }
+
     ]
   }
 ]
@@ -47,20 +63,20 @@ const router = createRouter({
 })
 
 //路由全局前置守卫
-router.beforeEach((to,from,next) => {
-  if(to.path === '/register' || to.path === '/login' || to.path === '/' || to.path === '/resetpsw'){ //若是进入登录与注册页面 ==> pass
-    next()
-  }else{ 
-    let userToken = localStorage.getItem('token');
-    console.log("Token为:"+userToken); 
-    if(userToken == null || userToken == ''){
-      ElMessage.error("无权限，请先登录!");
-      return next('/login');
-    }else{
-      next();
-    }
-  }
-})
+// router.beforeEach((to,from,next) => {
+//   if(to.path === '/register' || to.path === '/login' || to.path === '/' || to.path === '/resetpsw'){ //若是进入登录与注册页面 ==> pass
+//     next()
+//   }else{ 
+//     let userToken = localStorage.getItem('token');
+//     console.log("Token为:"+userToken); 
+//     if(userToken == null || userToken == ''){
+//       ElMessage.error("无权限，请先登录!");
+//       return next('/login');
+//     }else{
+//       next();
+//     }
+//   }
+// })
 
 
 export default router
