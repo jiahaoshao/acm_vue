@@ -1,30 +1,71 @@
 <template>
-    <div>
-      <!-- 页面内容 -->
-      <h1>用户名为：{{ username }}</h1>
-      <h1>邮箱为：{{ email }}</h1>
-      <h1>手机号为：{{ phone }}</h1>
+  <div class="user-profile">
+    <div class="user-info">
+      <h2>{{ user.username }}</h2>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Phone:</strong> {{ user.phone }}</p>
     </div>
-  </template>
+  </div>
+  <button @click="changeInfo">修改信息</button>
+  <button @click="changePassword">修改密码</button>
+</template>
   
-  <script setup>
-  import { ref } from 'vue';
-  import { useStore } from 'vuex'
+<script setup>
+import router from '@/router';
+import { reactive, ref } from 'vue';
+import { useStore } from 'vuex'
+const store = useStore();
+// 从 localStorage 获取 user 对象 
+const storedUser = localStorage.getItem('user'); 
+// 解析存储的 user 对象 
+const user =reactive( storedUser ? JSON.parse(storedUser) : null); 
+function changeInfo()
+{
+  router.push('/home/changeInfo')
+}
+function changePassword()
+{
+  router.push('/home/changePassword')
+}
+</script>
   
+<style scoped>
+/* 样式 */
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
   
-  const store = useStore();
-  // 从 localStorage 获取 user 对象 
-  const storedUser = localStorage.getItem('user'); 
-  // 解析存储的 user 对象 
-  const user = storedUser ? JSON.parse(storedUser) : null; 
-  // 获取 user 对象中的 username 属性 
-  const username = ref(user ? user.username : '');
-  const email = ref(user ? user.email : '');
-  const phone = ref(user ? user.phone : '');
-  
-  </script>
-  
-  <style scoped>
-  /* 样式 */
-  </style>
+  button:hover {
+    background-color: #0056b3;
+  }
+.user-profile {
+  display: flex;
+  align-items: center;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.user-info h2 {
+  font-size: 24px;
+  margin: 0;
+  color: #333;
+}
+
+.user-info p {
+  font-size: 16px;
+  color: #666;
+}
+
+.user-info strong {
+  color: #333;
+}
+</style>
   
