@@ -49,7 +49,7 @@ const userApi = {
         })
     },
     getavatar(params){
-        return axios.get('download/avatar', {params : params});
+        return axios.get('download/avatar', {params : params}, {resposeType: "blob"});
     }
 
 }

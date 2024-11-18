@@ -21,8 +21,8 @@ const globalProperties = getCurrentInstance().appContext.config.globalProperties
 const $api = globalProperties.$api
 const storedUser = localStorage.getItem('user'); 
 // 解析存储的 user 对象 
-const user =reactive( storedUser ? JSON.parse(storedUser) : null); 
-    const form=reactive({
+const user = reactive( storedUser ? JSON.parse(storedUser) : null); 
+    const form = reactive({
         currentPassword:''
     })
     const rules = {

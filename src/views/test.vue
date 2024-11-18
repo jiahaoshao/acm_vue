@@ -16,7 +16,7 @@
     </el-upload>
     <div class="blog">
         <div class="gain">
-            <img :src="'data:image/png;base64,'+ image">
+            <img :src = "images" class="showavatar">
             <button @click="gain()"><span>获取图片</span></button>
         </div>
     </div>
@@ -32,11 +32,11 @@ const api = globalProperties.$api
 // 响应式引用，用于存储用户信息
 
 const user = JSON.parse(localStorage.getItem("user"));
-const image = ref("");
+const images = ref("");
 
 // 生命周期钩子，初始化时获取用户信息
 onMounted(() => {
-    
+  gain();
 });
 
 // 处理文件变化，上传文件并更新用户信息
@@ -66,12 +66,14 @@ console.log(user.id)
 // 获取头像
 const gain = () =>{
     api.userApi.getavatar({
-      id: user.id
+      pid: 1
     })
     .then( (res) => {
-      console.log(res);
-      image.value = res.data;
-      console.log(image.value)
+      console.log(res.data);
+      let blob = new window.Blob([res.data], { type: 'image/png' });
+      let url = window.URL.createObjectURL(blob);
+      images.value = url;
+      console.log(images.value)
       ElMessage.success("头像获取成功");
     })
 }
@@ -81,4 +83,14 @@ const gain = () =>{
 :deep(.el-descriptions__label) {
   min-width: 60px !important;
 }
+
+.showavatar {
+  border: 1px dashed #f50505;
+  border-radius: 50%;
+  width: 160px;
+  height: 160px;
+
+  background-size: 60px;
+}
+
 </style>

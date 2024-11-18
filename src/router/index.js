@@ -12,6 +12,7 @@ import changePassword from '@/views/ChangePassword.vue'
 import confirmPassword from '@/views/ConfirmPassword.vue'
 import { ElMessage } from 'element-plus'
 import Test from '@/views/test.vue'
+import musicAi from'@/views/musicAi.vue'
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: login },
@@ -42,6 +43,10 @@ const routes = [
         component:about
       },
       {
+        path:'musicAi',
+        component:musicAi
+      },
+      {
         path:'changeInfo',
         component:changeInfo
       },
@@ -65,20 +70,20 @@ const router = createRouter({
 })
 
 //路由全局前置守卫
-// router.beforeEach((to,from,next) => {
-//   if(to.path === '/register' || to.path === '/login' || to.path === '/' || to.path === '/resetpsw'){ //若是进入登录与注册页面 ==> pass
-//     next()
-//   }else{ 
-//     let userToken = localStorage.getItem('token');
-//     console.log("Token为:"+userToken); 
-//     if(userToken == null || userToken == ''){
-//       ElMessage.error("无权限，请先登录!");
-//       return next('/login');
-//     }else{
-//       next();
-//     }
-//   }
-// })
+router.beforeEach((to,from,next) => {
+  if(to.path === '/register' || to.path === '/login' || to.path === '/' || to.path === '/resetpsw'){ //若是进入登录与注册页面 ==> pass
+    next()
+  }else{ 
+    let userToken = localStorage.getItem('token');
+    console.log("Token为:"+userToken); 
+    if(userToken == null || userToken == ''){
+      ElMessage.error("无权限，请先登录!");
+      return next('/login');
+    }else{
+      next();
+    }
+  }
+})
 
 
 export default router

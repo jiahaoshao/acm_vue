@@ -145,16 +145,17 @@ const Signin = async () => {
       password: encryptedPwd(loginForm.password)
     });
      console.log(response);
+  
     if (response.data.code === 200) {
       count.value = 0;
       showCode.value = false;
       store.commit('setToken',response.data.token)
       store.commit('setUser',response.data.user)
-      ElMessage.success(response.data.msg);
+      ElMessage.success(response.data.message);
       router.push('/home')
       resetloginForm();
     } else {
-      ElMessage.error(response.data.msg);
+      ElMessage.error(response.data.message);
       count.value++;
       if (count.value >= 3) showCode.value = true;
       refreshCode();
