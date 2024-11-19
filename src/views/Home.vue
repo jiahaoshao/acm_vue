@@ -8,12 +8,30 @@
           <li><router-link to="/home/ai">AI助手</router-link></li>
           <li><router-link to="/home/about">关于我们</router-link></li>
         </ul>
+        
+        <!-- 右侧导航栏 -->
         <ul class="right-nav">
-          <li><router-link to="/home/info">个人信息</router-link></li>
+          <!-- 判断用户是否登录 -->
+          <li v-if="!isLoggedIn">
+            <button @click="goToLogin" class="auth-button">登录</button>
+          </li>
+          <li v-if="!isLoggedIn">
+            <button @click="goToSignup" class="auth-button">注册</button>
+          </li>
+          
+          <!-- 只有登录后才显示个人信息 -->
+          <li v-if="isLoggedIn">
+            <router-link to="/home/info">个人信息</router-link>
+          </li>
+          
+          <!-- 只有登录后才显示注销按钮 -->
+          <li v-if="isLoggedIn">
+            <button @click="logout" class="auth-button">退出登录</button>
+          </li>
         </ul>
       </nav>
     </div>
-    
+
     <!-- 主内容区域 -->
     <div class="main-content">
       <router-view></router-view> <!-- 渲染子路由 -->
@@ -22,9 +40,30 @@
 </template>
 
 <script>
-  export default {
-    name: 'Home'
+export default {
+  name: 'Home',
+  computed: {
+    // 从 Vuex 中获取用户是否已登录的状态
+    isLoggedIn() {
+      return !!this.$store.state.user; // 如果用户信息存在，则认为用户已登录
+    }
+  },
+  methods: {
+    // 跳转到登录页
+    goToLogin() {
+      this.$router.push('/login'); // 跳转到登录页面
+    },
+    // 跳转到注册页
+    goToSignup() {
+      this.$router.push('/signup'); // 跳转到注册页面
+    },
+    // 注销用户
+    logout() {
+      this.$store.commit('logout'); // 调用 Vuex 的 logout mutation
+      this.$router.push('/login'); // 注销后跳转到登录页面
+    }
   }
+}
 </script>
 
 <style scoped>
@@ -60,7 +99,8 @@
 }
 
 .left-nav li a,
-.right-nav li a {
+.right-nav li a,
+.auth-button {
   color: white;
   text-decoration: none;
   font-size: 18px;
@@ -71,13 +111,27 @@
 }
 
 .left-nav li a:hover,
-.right-nav li a:hover {
+.right-nav li a:hover,
+.auth-button:hover {
   background-color: #34495e;
 }
 
 /* 右侧导航项自动推到右边 */
 .right-nav {
   margin-left: auto;
+}
+
+/* 按钮样式 */
+.auth-button {
+  background-color: #2980b9;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 5px;
+}
+
+.auth-button:hover {
+  background-color: #3498db;
 }
 
 .main-content {
