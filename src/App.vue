@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <h1 class="title">创意交流平台</h1>
+    <!-- <h1 class="title">创意交流平台</h1> -->
     <!-- 路由的出口 -->
     <router-view/>
   </div>

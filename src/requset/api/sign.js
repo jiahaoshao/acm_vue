@@ -17,7 +17,7 @@ const signApi = {
   },
   //登出
   signout(params){
-    return axios.get('/signout/',{params: params});
+    return axios.get('/sign/signout',{params: params});
   },
   //获取验证码
   getEmailVerifyCode(params){
