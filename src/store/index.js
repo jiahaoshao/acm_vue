@@ -15,7 +15,7 @@ export default createStore({
       localStorage.setItem('token', token)
       state.token = token
     },
-    logout(state) {
+    signout(state) {
       localStorage.removeItem('token')
       state.token = null
       localStorage.removeItem('user')

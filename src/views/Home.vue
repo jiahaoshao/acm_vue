@@ -20,13 +20,16 @@
           </li>
           
           <!-- 只有登录后才显示个人信息 -->
-          <li v-if="isLoggedIn">
-            <router-link to="/home/info">个人信息</router-link>
-          </li>
+            <router-link to="/home/info" class="info-icon-router" v-if="isLoggedIn">
+              <img 
+                  :src="image"
+                  class="info-icon"
+              />
+            </router-link>
           
           <!-- 只有登录后才显示注销按钮 -->
           <li v-if="isLoggedIn">
-            <button @click="logout" class="auth-button">退出登录</button>
+            <button @click="signout" class="auth-button">退出登录</button>
           </li>
         </ul>
       </nav>
@@ -39,31 +42,42 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Home',
-  computed: {
-    // 从 Vuex 中获取用户是否已登录的状态
-    isLoggedIn() {
-      return !!this.$store.state.user; // 如果用户信息存在，则认为用户已登录
-    }
-  },
-  methods: {
-    // 跳转到登录页
-    goToLogin() {
-      this.$router.push('/login'); // 跳转到登录页面
-    },
-    // 跳转到注册页
-    goToSignup() {
-      this.$router.push('/signup'); // 跳转到注册页面
-    },
-    // 注销用户
-    logout() {
-      this.$store.commit('logout'); // 调用 Vuex 的 logout mutation
-      this.$router.push('/login'); // 注销后跳转到登录页面
-    }
+<script setup>
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+const user = ref({});
+const image = ref("");
+const isLoggedIn = ref(false);
+
+onMounted(() => {
+  const storedUser = localStorage.getItem("user");
+  if(storedUser) {
+    user.value = JSON.parse(localStorage.getItem("user"));
+    image.value = "http://26.201.192.85:8181/" + user.value.avatar;
+    console.log(image.value)
+    isLoggedIn.value = true;
   }
+})
+
+const goToLogin = () => {
+  router.push('/login'); // 跳转到登录页面
 }
+
+const goToSignup = () => {
+  router.push('/register'); // 跳转到注册页面
+}
+
+const signout = () => {
+  store.commit('signout'); // 调用 Vuex 的 logout mutation
+  location.reload();
+}
+
 </script>
 
 <style scoped>
@@ -144,5 +158,13 @@ export default {
   background-color: #42b983; /* 选中的项变色 */
   color: white; /* 选中的项文字颜色 */
   border-radius: 5px;
+}
+.info-icon {
+  border: 1px dashed #34495e;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+
+  background-size: 32px;
 }
 </style>
