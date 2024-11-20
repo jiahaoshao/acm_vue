@@ -24,14 +24,18 @@
               <!-- <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo"></el-avatar> -->
                <el-dropdown>
                 <span>
-                  <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo"></el-avatar>
+                  <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo" style="cursor: pointer;"></el-avatar>
                 </span>
                 
-                <el-dropdown-menu >
-                  <el-dropdown-item>菜单栏一</el-dropdown-item>
-                  <el-dropdown-item>菜单栏二</el-dropdown-item>
-                  <el-dropdown-item>菜单栏三</el-dropdown-item>
-                </el-dropdown-menu>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>黄金糕</el-dropdown-item>
+                    <el-dropdown-item>狮子头</el-dropdown-item>
+                    <el-dropdown-item>螺蛳粉</el-dropdown-item>
+                    <el-dropdown-item disabled>双皮奶</el-dropdown-item>
+                    <el-dropdown-item divided>蚵仔煎</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
                </el-dropdown>
           </li>
 
@@ -84,14 +88,12 @@ const goToSignup = () => {
 
 const goToInfo = () => {
   router.push("/home/info");
-}
+};
 
 const signout = () => {
   store.commit("signout"); // 调用 Vuex 的 logout mutation
   location.reload();
 };
-
-
 </script>
 
 <style scoped>
