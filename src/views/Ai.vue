@@ -1,92 +1,32 @@
 <template>
   <div class="home">
     <el-container>
-      <el-footer>
-        <!-- 聊天框和历史记录区域并排 -->
-        <div class="chat-wrapper">
-          <!-- 聊天框 -->
-          <div class="chat-box">
-            <el-scrollbar class="chat-container">
-              <div
-                v-for="(msg, index) in conversation"
-                :key="index"
-                :class="['message', msg.isUser ? 'user' : 'ai']"
-              >
-                <p>{{ msg.text }}</p>
-              </div>
-            </el-scrollbar>
-            <el-input
-              v-model="userInput"
-              placeholder="请输入你的问题..."
-              @keyup.enter="submitQuestion"
-              clearable
-              class="input-box"
-            />
-            <el-button @click="submitQuestion" type="primary" class="submit-btn"
-              >提交</el-button
-            >
-          </div>
-
-          <!-- 历史记录部分 -->
-          <div class="history-box">
-            <h3>历史记录</h3>
-            <ul>
-              <li
-                v-for="(msg, index) in conversation.slice().reverse()"
-                :key="index"
-              >
-                <div :class="['message', msg.isUser ? 'user' : 'ai']">
-                  <p>{{ msg.text }}</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </el-footer>
+      <el-header>
+        <h2 class="title">AI创新天地</h2>
+      </el-header>
+      <el-main class="function">
+        <nav>
+          <ul>
+            <li><router-link to="/ai/chatai">聊天助手</router-link></li>
+            <li><router-link to="/ai/musicai">音乐助手</router-link></li>
+            <li><router-link to="/ai/artai">绘画助手</router-link></li>
+          </ul>
+        </nav>
+      </el-main>
+      
     </el-container>
   </div>
+  <!-- 主内容区域 -->
+  <div class="main-content">
+    <router-view></router-view>
+    <!-- 渲染子路由 -->
+  </div>
 </template>
-
-<script setup>
-import axios from "axios";
-import { ref, nextTick } from "vue";
-
-const userInput = ref("");
-const conversation = ref([]);
-
-// 提交问题
-const submitQuestion = async () => {
-  if (!userInput.value.trim()) return;
-
-  // 用户提问，加入对话
-  conversation.value.push({ text: userInput.value, isUser: true });
-  const question = userInput.value;
-  userInput.value = ""; // 清空输入框
-
-  try {
-    // 假设后端接口是 /get_answer
-    const response = await axios.post("http://localhost:5000/get_answer", {
-      question,
-    });
-
-    // 获取AI的回答并加入对话
-    conversation.value.push({ text: response.data.answer, isUser: false });
-
-    // 等待 DOM 更新后滚动到底部
-    nextTick(() => {
-      const chatContainer = document.querySelector(".chat-container");
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    conversation.value.push({ text: "发生错误，请稍后再试。", isUser: false });
-  }
-};
-</script>
-
-<style scoped lang="less">
+ 
+  
+  <style scoped lang="less">
 .home {
-  height: 100%;
+  height: 10%;
   margin-top: 0;
 }
 
@@ -233,3 +173,4 @@ const submitQuestion = async () => {
   margin: 5px 0;
 }
 </style>
+  

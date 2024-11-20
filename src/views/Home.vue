@@ -5,7 +5,7 @@
       <nav>
         <ul class="left-nav">
           <li><router-link to="/home/home2">首页</router-link></li>
-          <li><router-link to="/home/ai">AI助手</router-link></li>
+          <li><a href="#/ai" target="'_blank'">AI助手</a></li>
           <li><router-link to="/home/about">关于我们</router-link></li>
         </ul>
 
@@ -21,27 +21,26 @@
 
           <!-- 只有登录后才显示个人信息 -->
           <li v-if="isLoggedIn">
-              <!-- <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo"></el-avatar> -->
-               <el-dropdown>
-                <span>
-                  <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo" style="cursor: pointer;"></el-avatar>
-                </span>
-                
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item>黄金糕</el-dropdown-item>
-                    <el-dropdown-item>狮子头</el-dropdown-item>
-                    <el-dropdown-item>螺蛳粉</el-dropdown-item>
-                    <el-dropdown-item disabled>双皮奶</el-dropdown-item>
-                    <el-dropdown-item divided>蚵仔煎</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-               </el-dropdown>
-          </li>
+            <el-dropdown trigger="hover" class="user-dropdown">
+              <span>
+                <el-avatar
+                  shape="circle"
+                  :size="50"
+                  :src="image"
+                  @click="goToInfo"
+                  class="avatar"
+                  style="cursor: pointer;"
+                ></el-avatar>
+              </span>
 
-          <!-- 只有登录后才显示注销按钮 -->
-          <li v-if="isLoggedIn">
-            <button @click="signout" class="auth-button">退出登录</button>
+              <template #dropdown>
+                <el-dropdown-menu class="custom-dropdown-menu">
+                  <el-dropdown-item @click="goToInfo" >个人中心</el-dropdown-item>
+                  <el-dropdown-item></el-dropdown-item>
+                  <el-dropdown-item @click="signout" ><el-icon><logout/></el-icon>退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </li>
         </ul>
       </nav>
@@ -175,23 +174,28 @@ const signout = () => {
   color: white; /* 选中的项文字颜色 */
   border-radius: 5px;
 }
-.info-icon {
-  border: 1px dashed #34495e;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  object-fit: cover; /* 确保图片在容器内适应 */
-  background-size: cover;
-  display: flex;
-  align-items: center; /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
+/* 自定义下拉框样式 */
+.custom-dropdown-menu {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  min-width: 150px; /* 确保下拉框有足够的宽度 */
+  min-height: 200px; /* 给下拉框设置一个最小高度，确保菜单项显示 */
 }
-.hasAvatar {
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  padding: 0; /* 移除填充 */
-  margin: 0; /* 移除边距 */
-  border: none; /* 移除边框 */
+/* 保证下拉框内容的显示与交互 */
+.el-dropdown__wrapper {
+  display: inline-block;
+  position: relative;
 }
+/* 头像的悬停效果 */
+.el-avatar {
+  transition: transform 0.3s ease; /* 头像变大的过渡动画 */
+}
+/* 头像悬停时放大 */
+.el-avatar:hover {
+  transform: scale(1.4); /* 放大头像 */
+}
+/* 当下拉框悬停时保持头像放大 */
+.el-dropdown__wrapper:hover .el-avatar {
+  transform: scale(1.4); /* 在下拉框悬停时，头像保持放大 */
+}
+
 </style>

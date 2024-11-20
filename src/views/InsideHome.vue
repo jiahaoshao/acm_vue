@@ -1,18 +1,19 @@
 <template>
-  <div class="user-profile">
-    <div class="user-info">
-      <h2>{{ user.username }}</h2>
-      <p><strong>Email:</strong> {{ user.email }}</p>
-      <p><strong>Phone:</strong> {{ user.phone }}</p>
+  <div class="user-profile" v-if="isLogin">
+    <div class="user-info" >
+        <h2>{{ user.username }}</h2>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
     </div>
   </div>
 </template>
   
 <script setup>
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useStore } from 'vuex'
 
 
+const isLogin = ref(false)
 const store = useStore();
 // 从 localStorage 获取 user 对象 
 const storedUser = localStorage.getItem('user'); 
@@ -20,6 +21,16 @@ const storedUser = localStorage.getItem('user');
 const user =reactive( storedUser ? JSON.parse(storedUser) : null); 
 // 获取 user 对象中的 username 属性 
 const username = ref(user ? user.username : '');
+
+onMounted(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user.value = JSON.parse(localStorage.getItem("user"));
+    isLogin.value = true;
+  }
+});
+
+
 </script>
   
 <style scoped>

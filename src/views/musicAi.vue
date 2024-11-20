@@ -1,18 +1,6 @@
 <template>
     <div class="home">
       <el-container>
-        <el-header>
-          <h2 class="title">AI创新天地</h2>
-        </el-header>
-        <el-main class="function">
-          <nav>
-            <ul>
-              <li><router-link to="/home/ai">聊天助手</router-link></li>
-              <li><router-link to="/home/musicAi">音乐助手</router-link></li>
-              <li><router-link to="/home/artAi">绘画助手</router-link></li> 
-            </ul>
-          </nav>
-        </el-main>
         <el-footer>
             
           <!-- 音乐创作部分 -->
