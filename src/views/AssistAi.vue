@@ -9,7 +9,7 @@
           <ul>
             <li><router-link to="/home/ai">聊天助手</router-link></li>
             <li><router-link to="/home/musicAi">音乐助手</router-link></li>
-            <li><router-link to="/home/artAi">绘画助手</router-link></li> 
+            <li><router-link to="/home/artAi">绘画助手</router-link></li>
           </ul>
         </nav>
       </el-main>
@@ -19,7 +19,11 @@
           <!-- 聊天框 -->
           <div class="chat-box">
             <el-scrollbar class="chat-container">
-              <div v-for="(msg, index) in conversation" :key="index" :class="['message', msg.isUser ? 'user' : 'ai']">
+              <div
+                v-for="(msg, index) in conversation"
+                :key="index"
+                :class="['message', msg.isUser ? 'user' : 'ai']"
+              >
                 <p>{{ msg.text }}</p>
               </div>
             </el-scrollbar>
@@ -30,14 +34,19 @@
               clearable
               class="input-box"
             />
-            <el-button @click="submitQuestion" type="primary" class="submit-btn">提交</el-button>
+            <el-button @click="submitQuestion" type="primary" class="submit-btn"
+              >提交</el-button
+            >
           </div>
 
           <!-- 历史记录部分 -->
           <div class="history-box">
             <h3>历史记录</h3>
             <ul>
-              <li v-for="(msg, index) in conversation.slice().reverse()" :key="index">
+              <li
+                v-for="(msg, index) in conversation.slice().reverse()"
+                :key="index"
+              >
                 <div :class="['message', msg.isUser ? 'user' : 'ai']">
                   <p>{{ msg.text }}</p>
                 </div>
@@ -50,48 +59,39 @@
   </div>
 </template>
 
-<script>
-import axios from 'axios';
-import { ref, nextTick } from 'vue';
+<script setup>
+import axios from "axios";
+import { ref, nextTick } from "vue";
 
-export default {
-  name: 'Ai',
-  setup() {
-    const userInput = ref('');
-    const conversation = ref([]);
+const userInput = ref("");
+const conversation = ref([]);
 
-    // 提交问题
-    const submitQuestion = async () => {
-      if (!userInput.value.trim()) return;
+// 提交问题
+const submitQuestion = async () => {
+  if (!userInput.value.trim()) return;
 
-      // 用户提问，加入对话
-      conversation.value.push({ text: userInput.value, isUser: true });
-      const question = userInput.value;
-      userInput.value = '';  // 清空输入框
+  // 用户提问，加入对话
+  conversation.value.push({ text: userInput.value, isUser: true });
+  const question = userInput.value;
+  userInput.value = ""; // 清空输入框
 
-      try {
-        // 假设后端接口是 /get_answer
-        const response = await axios.post('http://localhost:5000/get_answer', { question });
+  try {
+    // 假设后端接口是 /get_answer
+    const response = await axios.post("http://localhost:5000/get_answer", {
+      question,
+    });
 
-        // 获取AI的回答并加入对话
-        conversation.value.push({ text: response.data.answer, isUser: false });
+    // 获取AI的回答并加入对话
+    conversation.value.push({ text: response.data.answer, isUser: false });
 
-        // 等待 DOM 更新后滚动到底部
-        nextTick(() => {
-          const chatContainer = document.querySelector('.chat-container');
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-        });
-      } catch (error) {
-        console.error('Error:', error);
-        conversation.value.push({ text: '发生错误，请稍后再试。', isUser: false });
-      }
-    };
-
-    return {
-      userInput,
-      conversation,
-      submitQuestion
-    };
+    // 等待 DOM 更新后滚动到底部
+    nextTick(() => {
+      const chatContainer = document.querySelector(".chat-container");
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    conversation.value.push({ text: "发生错误，请稍后再试。", isUser: false });
   }
 };
 </script>
@@ -163,14 +163,13 @@ export default {
 .chat-box {
   background-color: white;
   width: 100%; /* 聊天框占 70% 宽度 */
-  max-width: 800px; 
+  max-width: 800px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding:20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   height: 600px; /* 增加聊天框的高度 */
-
 }
 
 .chat-container {
@@ -201,7 +200,7 @@ export default {
 .input-box {
   width: 800px; /* 输入框宽度填满聊天框 */
   margin-bottom: 10px;
-  margin-left:20px
+  margin-left: 20px;
 }
 
 .submit-btn {

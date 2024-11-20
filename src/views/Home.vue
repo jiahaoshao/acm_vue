@@ -8,7 +8,7 @@
           <li><router-link to="/home/ai">AI助手</router-link></li>
           <li><router-link to="/home/about">关于我们</router-link></li>
         </ul>
-        
+
         <!-- 右侧导航栏 -->
         <ul class="right-nav">
           <!-- 判断用户是否登录 -->
@@ -18,15 +18,23 @@
           <li v-if="!isLoggedIn">
             <button @click="goToSignup" class="auth-button">注册</button>
           </li>
-          
+
           <!-- 只有登录后才显示个人信息 -->
-            <router-link to="/home/info" class="info-icon-router" v-if="isLoggedIn">
-              <img 
-                  :src="image"
-                  class="info-icon"
-              />
-            </router-link>
-          
+          <li v-if="isLoggedIn">
+              <!-- <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo"></el-avatar> -->
+               <el-dropdown>
+                <span>
+                  <el-avatar shape="circle" :size = "50" :src = "image" @click = "goToInfo"></el-avatar>
+                </span>
+                
+                <el-dropdown-menu >
+                  <el-dropdown-item>菜单栏一</el-dropdown-item>
+                  <el-dropdown-item>菜单栏二</el-dropdown-item>
+                  <el-dropdown-item>菜单栏三</el-dropdown-item>
+                </el-dropdown-menu>
+               </el-dropdown>
+          </li>
+
           <!-- 只有登录后才显示注销按钮 -->
           <li v-if="isLoggedIn">
             <button @click="signout" class="auth-button">退出登录</button>
@@ -37,15 +45,16 @@
 
     <!-- 主内容区域 -->
     <div class="main-content">
-      <router-view></router-view> <!-- 渲染子路由 -->
+      <router-view></router-view>
+      <!-- 渲染子路由 -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from 'vuex';
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
 
 const router = useRouter();
 const route = useRoute();
@@ -57,26 +66,31 @@ const isLoggedIn = ref(false);
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
-  if(storedUser) {
+  if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
     image.value = "http://26.201.192.85:8181/" + user.value.avatar;
-    console.log(image.value)
+    console.log(image.value);
     isLoggedIn.value = true;
   }
-})
+});
 
 const goToLogin = () => {
-  router.push('/login'); // 跳转到登录页面
-}
+  router.push("/login"); // 跳转到登录页面
+};
 
 const goToSignup = () => {
-  router.push('/register'); // 跳转到注册页面
+  router.push("/register"); // 跳转到注册页面
+};
+
+const goToInfo = () => {
+  router.push("/home/info");
 }
 
 const signout = () => {
-  store.commit('signout'); // 调用 Vuex 的 logout mutation
+  store.commit("signout"); // 调用 Vuex 的 logout mutation
   location.reload();
-}
+};
+
 
 </script>
 
@@ -162,9 +176,20 @@ const signout = () => {
 .info-icon {
   border: 1px dashed #34495e;
   border-radius: 50%;
-  width: 64px;
-  height: 64px;
-
-  background-size: 32px;
+  width: 48px;
+  height: 48px;
+  object-fit: cover; /* 确保图片在容器内适应 */
+  background-size: cover;
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+}
+.hasAvatar {
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  padding: 0; /* 移除填充 */
+  margin: 0; /* 移除边距 */
+  border: none; /* 移除边框 */
 }
 </style>

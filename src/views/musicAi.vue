@@ -56,58 +56,47 @@
     </div>
   </template>
   
-  <script>
+  <script setup>
   import axios from 'axios';
   import { ref } from 'vue';
-  export default {
-    name: 'MusicAi',
-    setup() {
-      // 音乐创作设置
-      const musicSettings = ref({
-        emotion: '',
-        lyrics: '',
-        genre: ''
-      });
-      
-      const musicUrl = ref('');
+  // 音乐创作设置
+  const musicSettings = ref({
+    emotion: '',
+    lyrics: '',
+    genre: ''
+  });
   
-      // 生成音乐
-      const generateMusic = async () => {
-        if (!musicSettings.value.emotion || !musicSettings.value.lyrics || !musicSettings.value.genre) {
-          alert("请填写完整的创作设置！");
-          return;
-        }
-  
-        try {
-          // 假设后端接口是 /generate_music
-          const response = await axios.post('http://localhost:5000/generate_music', musicSettings.value);
-  
-          // 返回音乐的 URL
-          musicUrl.value = response.data.musicUrl;  // 假设返回的是音乐文件的 URL
-        } catch (error) {
-          console.error('Error:', error);
-          alert("生成音乐失败，请稍后再试。");
-        }
-      };
-  
-      // 保存音乐
-      const saveMusic = () => {
-        if (!musicUrl.value) return alert("没有可保存的音乐！");
-  
-        const link = document.createElement('a');
-        link.href = musicUrl.value;
-        link.download = 'generated_music.mp3';  // 假设文件名是 generated_music.mp3
-        link.click();
-      };
-  
-      return {
-        musicSettings,
-        musicUrl,
-        generateMusic,
-        saveMusic
-      };
+  const musicUrl = ref('');
+
+  // 生成音乐
+  const generateMusic = async () => {
+    if (!musicSettings.value.emotion || !musicSettings.value.lyrics || !musicSettings.value.genre) {
+      alert("请填写完整的创作设置！");
+      return;
+    }
+
+    try {
+      // 假设后端接口是 /generate_music
+      const response = await axios.post('http://localhost:5000/generate_music', musicSettings.value);
+
+      // 返回音乐的 URL
+      musicUrl.value = response.data.musicUrl;  // 假设返回的是音乐文件的 URL
+    } catch (error) {
+      console.error('Error:', error);
+      alert("生成音乐失败，请稍后再试。");
     }
   };
+
+  // 保存音乐
+  const saveMusic = () => {
+    if (!musicUrl.value) return alert("没有可保存的音乐！");
+
+    const link = document.createElement('a');
+    link.href = musicUrl.value;
+    link.download = 'generated_music.mp3';  // 假设文件名是 generated_music.mp3
+    link.click();
+  };
+  
   </script>
   
   <style scoped lang="less">
