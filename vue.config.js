@@ -1,6 +1,6 @@
 
-import { defineConfig } from '@vue/cli-service'
-export default defineConfig({
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave:false,
   devServer: {
@@ -23,5 +23,10 @@ export default defineConfig({
         }
       }
     }
-  }
+  },
+  // 输出文件目录
+  outputDir: 'dist',
+
+  // 静态资源目录
+  assetsDir: 'static',
 })
