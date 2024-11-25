@@ -48,8 +48,11 @@
 </template>
 
 <script setup>
-import axios from "axios";
-import { ref, nextTick } from "vue";
+import { ref, nextTick, getCurrentInstance } from "vue";
+
+const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $api = globalProperties.$api
+
 
 const userInput = ref("");
 const conversation = ref([]);
@@ -65,12 +68,11 @@ const submitQuestion = async () => {
 
   try {
     // 假设后端接口是 /get_answer
-    const response = await axios.post("http://localhost:5000/get_answer", {
-      question,
-    });
+    const response = await $api.AiApi.chat(question)
+    console.log(response)
 
     // 获取AI的回答并加入对话
-    conversation.value.push({ text: response.data.answer, isUser: false });
+    conversation.value.push({ text: response.data.choices[0].message.content, isUser: false });
 
     // 等待 DOM 更新后滚动到底部
     nextTick(() => {
