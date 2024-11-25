@@ -7,12 +7,12 @@
           <!-- 聊天框 -->
           <div class="chat-box">
             <el-scrollbar class="chat-container">
-              <div
+              <div 
                 v-for="(msg, index) in conversation"
                 :key="index"
                 :class="['message', msg.isUser ? 'user' : 'ai']"
               >
-                <p>{{ msg.text }}</p>
+                <p v-html="msg.text"></p>
               </div>
             </el-scrollbar>
             <el-input
@@ -36,7 +36,7 @@
                 :key="index"
               >
                 <div :class="['message', msg.isUser ? 'user' : 'ai']">
-                  <p>{{ msg.text }}</p>
+                  <p v-html="msg.text"></p>
                 </div>
               </li>
             </ul>
@@ -48,6 +48,8 @@
 </template>
 
 <script setup>
+import MarkdownIt from "markdown-it";
+import 'github-markdown-css';
 import { ref, nextTick, getCurrentInstance } from "vue";
 
 const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
@@ -56,13 +58,14 @@ const $api = globalProperties.$api
 
 const userInput = ref("");
 const conversation = ref([]);
+const md = new MarkdownIt();
 
 // 提交问题
 const submitQuestion = async () => {
   if (!userInput.value.trim()) return;
 
   // 用户提问，加入对话
-  conversation.value.push({ text: userInput.value, isUser: true });
+  conversation.value.push({ text: md.render(userInput.value), isUser: true });
   const question = userInput.value;
   userInput.value = ""; // 清空输入框
 
@@ -72,7 +75,7 @@ const submitQuestion = async () => {
     console.log(response)
 
     // 获取AI的回答并加入对话
-    conversation.value.push({ text: response.data.choices[0].message.content, isUser: false });
+    conversation.value.push({ text: md.render(response.data.choices[0].message.content), isUser: false });
 
     // 等待 DOM 更新后滚动到底部
     nextTick(() => {

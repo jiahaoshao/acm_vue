@@ -1,190 +1,253 @@
 <template>
-    <div class="home">
-      <el-container>
-        <el-footer>
-            
-          <!-- 音乐创作部分 -->
-          <div class="music-wrapper">
-            <!-- 音乐创作设置区域 -->
-            <div class="music-settings">
-              <h3>绘画创作设置</h3>
-              <el-form :model="musicSettings" label-width="120px">
-                <el-form-item label="情感">
-                  <el-select v-model="musicSettings.emotion" placeholder="请选择情感">
-                    <el-option label="快乐" value="happy"></el-option>
-                    <el-option label="悲伤" value="sad"></el-option>
-                    <el-option label="兴奋" value="excited"></el-option>
-                    <el-option label="平静" value="calm"></el-option>
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="歌词">
-                  <el-input v-model="musicSettings.lyrics" placeholder="请输入歌词..."></el-input>
-                </el-form-item>
-                <el-form-item label="音乐风格">
-                  <el-select v-model="musicSettings.genre" placeholder="请选择风格">
-                    <el-option label="流行" value="pop"></el-option>
-                    <el-option label="摇滚" value="rock"></el-option>
-                    <el-option label="爵士" value="jazz"></el-option>
-                    <el-option label="电子" value="electronic"></el-option>
-                  </el-select>
-                </el-form-item>
-                <el-button @click="generateMusic" type="primary">生成音乐</el-button>
-              </el-form>
-            </div>
-  
-            <!-- 音乐播放器部分 -->
-            <div class="music-player" v-if="musicUrl">
-              <h3>音乐播放</h3>
-              <audio :src="musicUrl" controls></audio>
-              <el-button @click="saveMusic" type="success" class="save-btn">保存音乐</el-button>
-            </div>
+  <div class="home">
+    <el-container>
+      <el-footer>
+        <!-- 聊天框和历史记录区域并排 -->
+        <div class="chat-wrapper">
+          <!-- 聊天框 -->
+          <div class="chat-box">
+            <el-scrollbar class="chat-container">
+              <div 
+                v-for="(msg, index) in conversation"
+                :key="index"
+                :class="['message', msg.isUser ? 'user' : 'ai']"
+              >
+                <p v-html="msg.text"></p>
+              </div>
+            </el-scrollbar>
+            <el-input
+              v-model="userInput"
+              placeholder="请输入你的内容..."
+              @keyup.enter="submitQuestion"
+              clearable
+              class="input-box"
+            />
+            <el-button @click="submitQuestion" type="primary" class="submit-btn"
+              >提交</el-button
+            >
           </div>
-        </el-footer>
-      </el-container>
-    </div>
 
-  </template>
-  
-  <script setup>
-  import axios from 'axios';
-  import { ref } from 'vue';
-  // 音乐创作设置
-  const musicSettings = ref({
-    emotion: '',
-    lyrics: '',
-    genre: ''
-  });
-  
-  const musicUrl = ref('');
+          <!-- 历史记录部分 -->
+          <div class="history-box">
+            <h3>历史记录</h3>
+            <ul>
+              <li
+                v-for="(msg, index) in conversation.slice().reverse()"
+                :key="index"
+              >
+                <div :class="['message', msg.isUser ? 'user' : 'ai']">
+                  <p v-html="msg.text"></p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <img :src="image" alt="图片未上传" />
+      </el-footer>
+    </el-container>
+  </div>
+</template>
 
-  // 生成音乐
-  const generateMusic = async () => {
-    if (!musicSettings.value.emotion || !musicSettings.value.lyrics || !musicSettings.value.genre) {
-      alert("请填写完整的创作设置！");
-      return;
-    }
+<script setup>
+import MarkdownIt from "markdown-it";
+import 'github-markdown-css';
+import { ref, nextTick, getCurrentInstance } from "vue";
 
-    try {
-      // 假设后端接口是 /generate_music
-      const response = await axios.post('http://localhost:5000/generate_music', musicSettings.value);
+const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $api = globalProperties.$api
+const image = ref("")
 
-      // 返回音乐的 URL
-      musicUrl.value = response.data.musicUrl;  // 假设返回的是音乐文件的 URL
-    } catch (error) {
-      console.error('Error:', error);
-      alert("生成音乐失败，请稍后再试。");
-    }
-  };
+const userInput = ref("");
+const conversation = ref([]);
+const md = new MarkdownIt();
 
-  // 保存音乐
-  const saveMusic = () => {
-    if (!musicUrl.value) return alert("没有可保存的音乐！");
+// 提交问题
+const submitQuestion = async () => {
+  if (!userInput.value.trim()) return;
 
-    const link = document.createElement('a');
-    link.href = musicUrl.value;
-    link.download = 'generated_music.mp3';  // 假设文件名是 generated_music.mp3
-    link.click();
-  };
+  // 用户提问，加入对话
+  conversation.value.push({ text: md.render(userInput.value), isUser: true });
+  const prompt = userInput.value;
+  userInput.value = ""; // 清空输入框
+
+  try {
+    // 假设后端接口是 /get_answer
+    const res = await $api.AiApi.get_access_token();
+    const access_token = res.data.access_token;
+    console.log(access_token);
+    $api.AiApi.art({
+      access_token: access_token,
+      prompt: prompt,
+    })
+    .then((res) => {
+      console.log(res);
+      const data = res.data.data;
+      image.value = 'data:image/png;base64,' +  data[0].b64_image;
+      //console.log(image.value)
+    })
   
-  </script>
-  
-  <style scoped lang="less">
-  .home {
-    height: 100%;
-    margin-top: 0;
+
+    // 获取AI的回答并加入对话
+    //conversation.value.push({ text: md.render(response.data.choices[0].message.content), isUser: false });
+
+    // 等待 DOM 更新后滚动到底部
+    nextTick(() => {
+      const chatContainer = document.querySelector(".chat-container");
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    conversation.value.push({ text: "发生错误，请稍后再试。", isUser: false });
   }
-  
-  :deep(.el-header) {
-    height: 50px;
-    background-color: #2c3e50;
-    color: white;
-    padding-bottom: 5px;
-  }
-  
-  .title {
-    margin-left: 20px;
-    font-size: 22px;
-    padding-bottom: 5px;
-    margin-bottom: 0;
-    text-align: center;
-  }
-  
-  .function {
-    background-color: #2c3e50;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .function ul {
-    display: flex;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .function li {
-    margin-left: 30px;
-    font-size: 24px;
-    list-style: none;
-  }
-  
-  .function a {
-    text-decoration: none;
-    color: white;
-  }
-  
-  .function a:hover {
-    background-color: #34495e;
-  }
-  
-  .router-link-active {
-    background-color: #42b983;
-    color: white;
-    border-radius: 5px;
-  }
-  
-  /* 音乐创作设置部分 */
-  .music-wrapper {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1200px;
-    margin: 20px auto;
-  }
-  
-  .music-settings {
-    width: 48%;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .music-settings h3 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .music-player {
-    width: 48%;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .save-btn {
-    margin-top: 20px;
-    width: 100%;
-    background-color: #42b983;
-    color: white;
-  }
-  
-  .save-btn:hover {
-    background-color: #367f5b;
-  }
-  
-  .el-form-item {
-    margin-bottom: 20px;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped lang="less">
+.home {
+  height: 100%;
+  margin-top: 0;
+}
+
+:deep(.el-header) {
+  height: 50px; /* 缩小标题区域的高度 */
+  background-color: #2c3e50;
+  color: white;
+  padding-bottom: 5px;
+}
+
+.title {
+  margin-left: 20px; /* 缩小标题的左边距，使其更靠近左侧 */
+  font-size: 22px; /* 减小字体大小 */
+  padding-bottom: 5px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.function {
+  background-color: #2c3e50;
+  padding: 0;
+  margin: 0;
+}
+
+.function ul {
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+.function li {
+  margin-left: 30px; /* 缩小导航项的间距 */
+  font-size: 24px; /* 减小字体大小 */
+  list-style: none;
+}
+
+.function a {
+  text-decoration: none;
+  color: white;
+}
+
+.function a:hover {
+  background-color: #34495e;
+}
+
+.router-link-active {
+  background-color: #42b983;
+  color: white;
+  border-radius: 5px;
+}
+
+/* 聊天框和历史记录部分的容器 */
+.chat-wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* 聊天框部分 */
+.chat-box {
+  background-color: white;
+  width: 100%; /* 聊天框占 70% 宽度 */
+  max-width: 800px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 600px; /* 增加聊天框的高度 */
+}
+
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.message {
+  padding: 10px 20px;
+  margin: 8px 0;
+  border-radius: 10px;
+  width: 100%;
+  word-wrap: break-word;
+}
+
+.user {
+  background-color: #e0f7fa;
+  align-self: flex-end;
+}
+
+.ai {
+  background-color: #f1f1f1;
+  align-self: flex-start;
+}
+
+.input-box {
+  width: 800px; /* 输入框宽度填满聊天框 */
+  margin-bottom: 10px;
+  margin-left: 20px;
+}
+
+.submit-btn {
+  width: 20%; /* 提交按钮宽度 */
+  background-color: #42b983;
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: #367f5b;
+}
+
+/* 历史记录部分 */
+.history-box {
+  background-color: #f9f9f9;
+  width: 28%; /* 历史记录框占 28% 宽度 */
+  max-height: 600px; /* 设置最大高度 */
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.history-box h3 {
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 20px;
+  color: #333;
+}
+
+.history-box ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-box li {
+  margin-bottom: 10px;
+}
+
+.history-box .message {
+  margin: 5px 0;
+}
+</style>
