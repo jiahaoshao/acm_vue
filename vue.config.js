@@ -14,7 +14,14 @@ module.exports = defineConfig({
         pathRewrite: {
           '^/api': '' // 重写路径
         }
+      },
+      '/chatapi': {
+        target: 'https://api.x.ai', // 目标服务器地址,也就是后端服务地址
+        changeOrigin: true, // 是否改变源地址
+        pathRewrite: {
+          '^/chatapi': '' // 重写路径
+        }
       }
-   }
+    }
   }
 })
