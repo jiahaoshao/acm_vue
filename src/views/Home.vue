@@ -36,7 +36,7 @@
               <template #dropdown>
                 <el-dropdown-menu class="custom-dropdown-menu">
                   <el-dropdown-item @click="goToInfo" >个人中心</el-dropdown-item>
-                  <el-dropdown-item></el-dropdown-item>
+                  <el-dropdown-item @click="gotoCreate">创作中心</el-dropdown-item>
                   <el-dropdown-item @click="signout" ><el-icon><logout/></el-icon>退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -92,6 +92,10 @@ const goToInfo = () => {
 const signout = () => {
   store.commit("signout"); // 调用 Vuex 的 logout mutation
   location.reload();
+};
+const gotoCreate = () => {
+  const url = router.resolve('/createCenter').href;  // 解析路由路径
+  window.open(url, '_blank');  // 在新标签页中打开
 };
 </script>
 

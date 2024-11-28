@@ -15,11 +15,31 @@ import Test from '@/views/test.vue'
 import musicAi from'@/views/musicAi.vue'
 import artAi from '@/views/artAi.vue'
 import ai from '@/views/Ai.vue'
+import createCenter from'@/views/createCenter.vue'
+import noteManager from '@/views/noteManager.vue'
+import notePost from '@/views/notePost.vue'
 const routes = [
   { path: '', redirect: '/home' },
   { path: '/login', component: login },
   { path: '/register',component: register},
   { path: '/resetpsw',component: resetpsw},
+  { path: '/createCenter',
+    component:createCenter,
+    children:[
+      {
+        path:'',
+        redirect:'/createCenter/notePost'
+      },
+      {
+        path:'notePost',
+        component:notePost
+      },
+      {
+        path:'noteManager',
+        component:noteManager
+      }
+    ]
+  },
   {
     path: '/ai',
     component: ai,
