@@ -87,21 +87,21 @@ const router = createRouter({
 
 //路由全局前置守卫
 // 路由全局前置守卫
-router.beforeEach((to, from, next) => {
-  const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2'];
-  if (whiteList.includes(to.path)) {
-    next();
-  } else {
-    let userToken = localStorage.getItem('token');
-    console.log("Token为:" + userToken);
-    if (userToken == null || userToken == '') {
-      ElMessage.error("无权限，请先登录!");
-      return next('/login');
-    } else {
-      next();
-    }
-  }
-});
+// router.beforeEach((to, from, next) => {
+//   const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2'];
+//   if (whiteList.includes(to.path)) {
+//     next();
+//   } else {
+//     let userToken = localStorage.getItem('token');
+//     console.log("Token为:" + userToken);
+//     if (userToken == null || userToken == '') {
+//       ElMessage.error("无权限，请先登录!");
+//       return next('/login');
+//     } else {
+//       next();
+//     }
+//   }
+// });
 
 
 
