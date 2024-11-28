@@ -1,8 +1,8 @@
 <template>
   <div class="article-container">
-    <div v-for="article in articles" :key="article.id" class="article-card">
-      <h3 class="article-title">{{ article.title }}</h3>
-      <p class="article-content">{{ article.content }}</p>
+    <div v-for="article in articles" :key="article.id" class="article-card" @click="goToArticle(article.id)">
+      <h3 class="article-title" >{{ article.title }}</h3>
+      <p class="article-content" v-text="getShortContent(article.content)"></p>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -12,6 +12,7 @@
 <script setup>
 import { onMounted, reactive, ref,getCurrentInstance } from 'vue';
 import { useStore } from 'vuex'
+import router from '@/router';
 const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api
 const articles = ref([
@@ -33,8 +34,14 @@ const articles = ref([
         console.error('加载失败', err);
       } finally {
         loading.value = false; 
+        page.value++
       }
     };
+    //文本显示前100
+    const getShortContent = (content) => {
+  return content.length > 100 ? content.slice(0, 100) + '...' : content;
+};
+  //滚动条监听
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight; // 文档的总高度
       const scrollTop = document.documentElement.scrollTop; // 滚动的高度
@@ -42,7 +49,10 @@ const articles = ref([
       if (scrollTop + clientHeight >= scrollHeight - 10) 
         loadArticles(); 
     };
-
+    //点击跳转
+    const goToArticle = (articleId) => {
+      router.push({ name: 'ArticleDetail', params: { articleId } });
+};
 
 onMounted(() => {
   loadArticles(); 

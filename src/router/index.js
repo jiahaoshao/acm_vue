@@ -15,6 +15,7 @@ import Test from '@/views/test.vue'
 import musicAi from'@/views/musicAi.vue'
 import artAi from '@/views/artAi.vue'
 import ai from '@/views/Ai.vue'
+import articleDetail from '@/views/articleDetail.vue'
 const routes = [
   { path: '', redirect: '/home' },
   { path: '/login', component: login },
@@ -73,8 +74,13 @@ const routes = [
       {
         path:'confirmPassword',
         component:confirmPassword
+      },
+      {
+        path: 'article/:articleId',  // 设置动态路由参数
+        name: 'ArticleDetail', // 给路由命名，方便跳转
+        component: articleDetail,
+        props: true  // 启用 props 传递参数
       }
-
     ]
   },
   { path: '/test', component: Test}

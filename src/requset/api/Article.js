@@ -7,6 +7,13 @@ const articleApi = {
             limit:limit
         }
       });
+    },
+    getArticleById(articleId){
+        return axios.post('',{
+            params:{
+                articleId:articleId
+            }
+        })
     }
   };
   
