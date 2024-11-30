@@ -1,12 +1,25 @@
 import axios from '@/requset/http';
 const articleApi = {
-    getArticle(page,limit){
-      return axios.get('/articles/getArticles', {
-        params:{
-            page:page,
-            limit:limit
+  getArticle(page, limit) {
+    return axios.get('/articles/getarticles', {
+      params: {
+        page: page,
+        limit: limit
+      }
+    });
+  },
+  uploadArticleImages(params){
+    return axios({
+        url: "upload/article_images",
+        method: "post",
+        data: params,
+        headers:{
+            'Content-Type': 'multipart/form-data',
         }
-      });
+    })
+  },
+  updateArticle(params){
+    return axios.post('/articles/update_article', params);
     },
     getArticleById(articleId){
         return axios.post('',{
@@ -14,7 +27,7 @@ const articleApi = {
                 articleId:articleId
             }
         })
-    }
-  };
-  
-  export default articleApi;
+  }
+};
+
+export default articleApi;

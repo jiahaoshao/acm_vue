@@ -1,8 +1,8 @@
 <template>
   <div class="article-container">
-    <div v-for="article in articles" :key="article.id" class="article-card" @click="goToArticle(article.id)">
-      <h3 class="article-title" >{{ article.title }}</h3>
-      <p class="article-content" v-text="getShortContent(article.content)"></p>
+    <div v-for="article in articles" :key="article.aid" class="article-card">
+      <h3 class="article-title">{{ article.title }}</h3>
+      <p class="article-content" v-html="parseMarkdown(article.content)"></p>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -10,56 +10,62 @@
 </template>
   
 <script setup>
-import { onMounted, reactive, ref,getCurrentInstance } from 'vue';
-import { useStore } from 'vuex'
+import MarkdownIt from "markdown-it";
+import { onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { useStore } from "vuex";
+
+const md = new MarkdownIt();
 import router from '@/router';
-const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
-const $api = globalProperties.$api
-const articles = ref([
-]); 
-    const page = ref(1); // 当前页数
-    const limit = ref(10); // 每页文章数量
-    const hasMore = ref(true); // 是否还有更多数据
-    const loading = ref(false); // 加载状态
-    // 加载文章
-    const loadArticles = async () => {
-      if (loading.value || !hasMore.value) return; 
-      loading.value = true;
-      try {
-        const res=await $api.articleApi.getArticle(page.value,limit.value)
-        const data=res.data
-        articles.value.push(...data.data)
-        hasMore.value=data.hasMore
-      } catch (err) {
-        console.error('加载失败', err);
-      } finally {
-        loading.value = false; 
+const globalProperties =
+  getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $api = globalProperties.$api;
+const articles = ref([]);
+const page = ref(1); // 当前页数
+const limit = ref(10); // 每页文章数量
+const hasMore = ref(true); // 是否还有更多数据
+const loading = ref(false); // 加载状态
+// 加载文章
+const loadArticles = async () => {
+  if (loading.value || !hasMore.value) return;
+  loading.value = true;
+  try {
+    const res = await $api.articleApi.getArticle(page.value, limit.value);
+    //console.log(res)
+    const data = res.data;
+    articles.value.push(...data.data);
+    hasMore.value = data.hasMore;
+  } catch (err) {
+    console.error("加载失败", err);
+  } finally {
+    loading.value = false;
         page.value++
-      }
-    };
+    page.value++;
+  }
+};
     //文本显示前100
     const getShortContent = (content) => {
   return content.length > 100 ? content.slice(0, 100) + '...' : content;
 };
   //滚动条监听
-    const handleScroll = () => {
-      const scrollHeight = document.documentElement.scrollHeight; // 文档的总高度
-      const scrollTop = document.documentElement.scrollTop; // 滚动的高度
-      const clientHeight = document.documentElement.clientHeight; // 可见区域高度
-      if (scrollTop + clientHeight >= scrollHeight - 10) 
-        loadArticles(); 
-    };
+
+const parseMarkdown = (content) => { 
+  return md.render(content); 
+};
+
+const handleScroll = () => {
+  const scrollHeight = document.documentElement.scrollHeight; // 文档的总高度
+  const scrollTop = document.documentElement.scrollTop; // 滚动的高度
+  const clientHeight = document.documentElement.clientHeight; // 可见区域高度
+  if (scrollTop + clientHeight >= scrollHeight - 10) loadArticles();
+};
     //点击跳转
     const goToArticle = (articleId) => {
       router.push({ name: 'ArticleDetail', params: { articleId } });
 };
-
 onMounted(() => {
-  loadArticles(); 
-  window.addEventListener('scroll', handleScroll);
+  loadArticles();
+  window.addEventListener("scroll", handleScroll);
 });
-
-
 </script>
   
 <style scoped>
@@ -128,6 +134,5 @@ body {
   font-family: Arial, sans-serif;
   background-color: #f7f7f7;
 }
-
 </style>
   
