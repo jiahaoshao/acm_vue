@@ -9,11 +9,9 @@ import 'element-plus/dist/index.css'
 import './styles/index.less' // 导入全局样式
 import api from './requset/api/index'
 import axios from 'axios'
-
-
+// import mavonEditor from 'mavon-editor'
+// import 'mavon-editor/dist/css/index.css'
 const app = createApp(App)
-
-
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
@@ -28,6 +26,8 @@ axios.defaults.timeout = 10000
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8'
 
 app.use(store).use(router).use(ElementPlus).mount('#app')
+// app.use(VueMarkdownEditor);
+// Vue.use(mavonEditor);
 
 
 
