@@ -4,11 +4,12 @@
       <h1>{{ article.title }}</h1>
       <h2 class="author-name">by:{{ article.authorName }}</h2>
     </div>
-    <p class="content">{{ article.content }}</p>
+    <p class="content" v-html="parseMarkdown(article.content)"></p>
   </div>
 </template>
   
   <script setup>
+  import MarkdownIt from "markdown-it";
   import { ElMessage } from 'element-plus';
   import { ref, onMounted,getCurrentInstance } from 'vue';
   import { useRoute } from 'vue-router';
@@ -19,6 +20,10 @@
     title:'',
     content:''
   });
+  const md = new MarkdownIt();
+  const parseMarkdown = (content) => { 
+  return md.render(content); 
+};
   async function fetchArticle(articleId){
       try{
         const res=await $api.articleApi.getArticleById(articleId)

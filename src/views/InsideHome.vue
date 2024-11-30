@@ -5,7 +5,7 @@
         <h3 class="article-title">{{ article.title }}</h3>
         <h3 class="article-authorName">by：{{ article.authorName }}</h3>
       </div>
-      <p class="article-content" v-text="getShortContent(article.content)"></p>
+      <p class="article-content"  v-html="parseMarkdown(getShortContent(article.content))"></p>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -33,17 +33,14 @@ const loadArticles = async () => {
   loading.value = true;
   try {
     const res = await $api.articleApi.getArticle(page.value, limit.value);
-    const data = res.data.data;
-    if(data){
-      for(let article of data)
+    const data = res.data;
+      for(let article of data.data)
     {
-      console.log(article)
       const authorRes=await $api.articleApi.getAuthorInfo(article.authorId);
       article.authorName=authorRes.data.data.username;
     }
-    articles.value.push(...data);
+    articles.value.push(...data.data);
     hasMore.value = data.hasMore;
-    }
   } catch (err) {
     console.error("加载失败", err);
   } finally {
@@ -55,11 +52,11 @@ const loadArticles = async () => {
     const getShortContent = (content) => {
   return content.length > 100 ? content.slice(0, 100) + '...' : content;
 };
-  //滚动条监听
 
 const parseMarkdown = (content) => { 
   return md.render(content); 
 };
+//滚动条监听
 
 const handleScroll = () => {
   const scrollHeight = document.documentElement.scrollHeight; // 文档的总高度
