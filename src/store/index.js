@@ -1,3 +1,4 @@
+
 import { createStore } from 'vuex';
 
 export default createStore({
@@ -5,6 +6,8 @@ export default createStore({
     user: localStorage.getItem('user') ? localStorage.getItem('user') : null,
     //若localSorage存在token，将值赋给Vuex.state.token
     token: localStorage.getItem('token') ? localStorage.getItem('token') : null,
+
+    article: localStorage.getItem('article') ? localStorage.getItem('article') : null,
   },
   mutations: {
     setUser(state, user) {
@@ -20,6 +23,10 @@ export default createStore({
       state.token = null
       localStorage.removeItem('user')
       state.user = null
+    },
+    setArticle(state, article) {
+      state.article = article
+      localStorage.setItem('article', JSON.stringify(article))
     }
   }
 })

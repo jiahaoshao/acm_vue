@@ -15,9 +15,9 @@ import Test from '@/views/test.vue'
 import musicAi from'@/views/musicAi.vue'
 import artAi from '@/views/artAi.vue'
 import ai from '@/views/Ai.vue'
-import createCenter from'@/views/createCenter.vue'
-import noteManager from '@/views/noteManager.vue'
-import notePost from '@/views/notePost.vue'
+import Release from '@/views/ReleaseView.vue'
+import Space from '@/views/SpaceView.vue'
+import PreView from '@/views/PreView.vue'
 const routes = [
   { path: '', redirect: '/home' },
   { path: '/login', component: login },
@@ -97,7 +97,10 @@ const routes = [
 
     ]
   },
-  { path: '/test', component: Test}
+  { path: '/test', component: Test},
+  { path: '/release', component: Release},
+  { path: '/space', component: Space},
+  { path: '/preview', component: PreView},
 ]
 
 const router = createRouter({
@@ -106,22 +109,21 @@ const router = createRouter({
 })
 
 //路由全局前置守卫
-// 路由全局前置守卫
-// router.beforeEach((to, from, next) => {
-//   const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2'];
-//   if (whiteList.includes(to.path)) {
-//     next();
-//   } else {
-//     let userToken = localStorage.getItem('token');
-//     console.log("Token为:" + userToken);
-//     if (userToken == null || userToken == '') {
-//       ElMessage.error("无权限，请先登录!");
-//       return next('/login');
-//     } else {
-//       next();
-//     }
-//   }
-// });
+router.beforeEach((to, from, next) => {
+  const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2'];
+  if (whiteList.includes(to.path)) {
+    next();
+  } else {
+    let userToken = localStorage.getItem('token');
+    console.log("Token为:" + userToken);
+    if (userToken == null || userToken == '') {
+      ElMessage.error("无权限，请先登录!");
+      return next('/login');
+    } else {
+      next();
+    }
+  }
+});
 
 
 
