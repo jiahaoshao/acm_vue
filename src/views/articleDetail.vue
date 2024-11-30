@@ -1,9 +1,12 @@
 <template>
-    <div class="article-detail">
-      <h1>{{article.title}}</h1>
-      <p>{{ article.content }}</p>
+  <div class="article-detail">
+    <div class="header">
+      <h1>{{ article.title }}</h1>
+      <h2 class="author-name">by:{{ article.authorName }}</h2>
     </div>
-  </template>
+    <p class="content">{{ article.content }}</p>
+  </div>
+</template>
   
   <script setup>
   import { ElMessage } from 'element-plus';
@@ -20,7 +23,9 @@
       try{
         const res=await $api.articleApi.getArticleById(articleId)
         if(res.data.code===0){
-            article.value=res.data
+          const Ares=await $api.articleApi.getAuthorInfo(res.data.data.authorId)
+          article.value=res.data.data
+          article.value.authorName=Ares.data.data.username
         }
         else{
             ElMessage.error("获取失败")
@@ -31,47 +36,65 @@
 }
 onMounted(() => {
        const articleId = route.params.articleId;
-    //    fetchArticle(articleId);
+       fetchArticle(articleId);
   });
   </script>
   
   <style scoped>
-    .article-detail {
-  max-width: 800px; /* 最大宽度，确保内容不拉得太长 */
-  margin: 20px auto; /* 中心对齐 */
-  padding: 20px;
-  background-color: #fff; /* 背景色 */
-  border-radius: 8px; /* 圆角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 阴影 */
-  color: #333; /* 文字颜色 */
+  .article-detail {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-family: 'Arial', sans-serif;
+}
+
+.article-detail .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* 垂直居中 */
 }
 
 .article-detail h1 {
-  font-size: 2.5em; /* 标题字号 */
+  font-size: 2.5em;
   font-weight: bold;
-  margin-bottom: 20px; /* 标题底部间距 */
-  color: #2c3e50; /* 标题颜色 */
-  line-height: 1.4;
+  color: #2c3e50;
+  margin: 0;
 }
 
-.article-detail p {
-  font-size: 1.2em; /* 内容字号 */
-  line-height: 1.8; /* 行高，增强可读性 */
-  color: #555; /* 内容颜色 */
-  white-space: pre-wrap; /* 保持格式 */
-  word-wrap: break-word; /* 防止内容过长溢出 */
+.article-detail h2.author-name {
+  font-size: 1em;
+  color: #7f8c8d;
+  font-weight: normal;
+  margin: 0;
+}
+
+.article-detail p.content {
+  font-size: 1.2em;
+  line-height: 1.8;
+  color: #555;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin-top: 20px;
 }
 
 @media (max-width: 600px) {
   .article-detail {
-    padding: 15px;
+    padding: 20px;
   }
 
   .article-detail h1 {
-    font-size: 2em;
+    font-size: 2.2em;
   }
 
-  .article-detail p {
+  .article-detail h2.author-name {
+    font-size: 0.9em;
+  }
+
+  .article-detail p.content {
     font-size: 1em;
   }
 }

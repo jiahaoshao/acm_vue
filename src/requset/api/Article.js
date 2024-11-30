@@ -27,6 +27,21 @@ const articleApi = {
                 articleId:articleId
             }
         })
+  },
+  getAuthorInfo(uid){
+    return axios.get('/user/finduserbyuid',{
+      params:{
+        uid:uid
+      }
+    })
+  },
+  getArticleById(id){
+    return axios.get('/articles/getArticleById',
+    {
+      params:{
+        id:id
+      }
+    })
   }
 };
 

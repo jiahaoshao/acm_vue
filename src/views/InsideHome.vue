@@ -1,8 +1,11 @@
 <template>
   <div class="article-container">
-    <div v-for="article in articles" :key="article.aid" class="article-card">
-      <h3 class="article-title">{{ article.title }}</h3>
-      <p class="article-content" v-html="parseMarkdown(article.content)"></p>
+    <div v-for="article in articles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)">
+      <div class="article-header">
+        <h3 class="article-title">{{ article.title }}</h3>
+        <h3 class="article-authorName">by：{{ article.authorName }}</h3>
+      </div>
+      <p class="article-content" v-text="getShortContent(article.content)"></p>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -30,15 +33,21 @@ const loadArticles = async () => {
   loading.value = true;
   try {
     const res = await $api.articleApi.getArticle(page.value, limit.value);
-    //console.log(res)
-    const data = res.data;
-    articles.value.push(...data.data);
+    const data = res.data.data;
+    if(data){
+      for(let article of data)
+    {
+      console.log(article)
+      const authorRes=await $api.articleApi.getAuthorInfo(article.authorId);
+      article.authorName=authorRes.data.data.username;
+    }
+    articles.value.push(...data);
     hasMore.value = data.hasMore;
+    }
   } catch (err) {
     console.error("加载失败", err);
   } finally {
     loading.value = false;
-        page.value++
     page.value++;
   }
 };
@@ -89,12 +98,26 @@ onMounted(() => {
   transform: translateY(-5px);
 }
 
-/* 文章标题 */
+/* 文章头部部分：标题和作者 */
+.article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* 垂直居中 */
+}
+
 .article-title {
   font-size: 20px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 10px;
+  margin: 0;
+  flex-grow: 1; /* 让标题占据更多空间 */
+}
+
+.article-authorName {
+  font-size: 14px; /* 设置作者名的字体较小 */
+  color: #7f8c8d;
+  font-weight: normal;
+  margin: 0;
 }
 
 /* 文章内容 */
@@ -103,6 +126,7 @@ onMounted(() => {
   color: #666;
   line-height: 1.6;
   word-wrap: break-word;
+  margin-top: 10px;
 }
 
 /* 加载中提示 */

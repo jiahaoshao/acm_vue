@@ -9,7 +9,7 @@ module.exports = defineConfig({
     // host: 'localhost',  //开发服务器的主机名
     proxy: {
       '/api': {
-        target: "http://26.201.192.85:8181/", // 目标服务器地址,也就是后端服务地址
+        target: 'http://localhost:8181/', // 目标服务器地址,也就是后端服务地址
         changeOrigin: true, // 是否改变源地址
         pathRewrite: {
           '^/api': '' // 重写路径
