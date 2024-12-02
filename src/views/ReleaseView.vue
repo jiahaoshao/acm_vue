@@ -14,7 +14,7 @@
             <el-dropdown
               trigger="hover"
               class="el-tooltip__trigger"
-              style="cursor: pointer; margin-right: 120px;"
+              style="cursor: pointer"
             >
               <span>
                 <el-avatar
@@ -52,6 +52,10 @@
               </template>
             </el-dropdown>
           </li>
+          <!-- 添加占位元素 -->
+          <li class="spacer"></li>
+          <li class="spacer"></li>
+          <li class="spacer"></li>
         </ul>
       </nav>
     </div>
@@ -511,5 +515,10 @@ const Draft = () => {
 .tag-last-wrp {
   margin-top: 10px;
   color: #888;
+}
+
+/* 新增占位元素样式 */
+.spacer {
+  flex-grow: 1;
 }
 </style>

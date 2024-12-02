@@ -12,7 +12,12 @@
                 :key="index"
                 :class="['message', msg.isUser ? 'user' : 'ai']"
               >
-                <p v-html="msg.text"></p>
+                <div class="avatar">
+                  <el-avatar :src="msg.isUser ? image : require('@/assets/ai.png')" alt="avatar" />
+                </div>
+                <div class="message-content">
+                  <p v-html="msg.text"></p>
+                </div>
               </div>
             </el-scrollbar>
             <el-input
@@ -22,9 +27,9 @@
               clearable
               class="input-box"
             />
-            <el-button @click="submitQuestion" type="primary" class="submit-btn"
-              >提交</el-button
-            >
+            <el-button @click="submitQuestion" type="primary" class="submit-btn">
+              提交
+            </el-button>
           </div>
 
           <!-- 历史记录部分 -->
@@ -36,7 +41,12 @@
                 :key="index"
               >
                 <div :class="['message', msg.isUser ? 'user' : 'ai']">
-                  <p v-html="msg.text"></p>
+                  <div class="avatar">
+                    <el-avatar :src="msg.isUser ? image : require('@/assets/ai.png')" alt="avatar" />
+                  </div>
+                  <div class="message-content">
+                    <p v-html="msg.text"></p>
+                  </div>
                 </div>
               </li>
             </ul>
@@ -50,16 +60,25 @@
 <script setup>
 import MarkdownIt from "markdown-it";
 import 'github-markdown-css';
-import { ref, nextTick, getCurrentInstance } from "vue";
-
+import {  nextTick, getCurrentInstance } from "vue";
+import { onMounted, ref } from "vue";
+import myJson from "@/../public/static/config.json";
+const { image_url } = myJson;
+const user = ref({});
+const image = ref("");
 const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api
-
-
 const userInput = ref("");
 const conversation = ref([]);
 const md = new MarkdownIt();
 
+onMounted(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user.value = JSON.parse(localStorage.getItem("user"));
+    image.value = image_url + user.value.avatar;
+  }
+});
 // 提交问题
 const submitQuestion = async () => {
   if (!userInput.value.trim()) return;
@@ -95,55 +114,6 @@ const submitQuestion = async () => {
   margin-top: 0;
 }
 
-:deep(.el-header) {
-  height: 50px; /* 缩小标题区域的高度 */
-  background-color: #2c3e50;
-  color: white;
-  padding-bottom: 5px;
-}
-
-.title {
-  margin-left: 20px; /* 缩小标题的左边距，使其更靠近左侧 */
-  font-size: 22px; /* 减小字体大小 */
-  padding-bottom: 5px;
-  margin-bottom: 0;
-  text-align: center;
-}
-
-.function {
-  background-color: #2c3e50;
-  padding: 0;
-  margin: 0;
-}
-
-.function ul {
-  display: flex;
-  padding: 0;
-  margin: 0;
-}
-
-.function li {
-  margin-left: 30px; /* 缩小导航项的间距 */
-  font-size: 24px; /* 减小字体大小 */
-  list-style: none;
-}
-
-.function a {
-  text-decoration: none;
-  color: white;
-}
-
-.function a:hover {
-  background-color: #34495e;
-}
-
-.router-link-active {
-  background-color: #42b983;
-  color: white;
-  border-radius: 5px;
-}
-
-/* 聊天框和历史记录部分的容器 */
 .chat-wrapper {
   display: flex;
   justify-content: space-between;
@@ -155,14 +125,14 @@ const submitQuestion = async () => {
 /* 聊天框部分 */
 .chat-box {
   background-color: white;
-  width: 100%; /* 聊天框占 70% 宽度 */
+  width: 100%; 
   max-width: 800px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   display: flex;
   flex-direction: column;
-  height: 600px; /* 增加聊天框的高度 */
+  height: 600px; 
 }
 
 .chat-container {
@@ -173,31 +143,61 @@ const submitQuestion = async () => {
 }
 
 .message {
-  padding: 10px 20px;
+  display: flex;
+  align-items: flex-start;
   margin: 8px 0;
-  border-radius: 10px;
+}
+
+.message .avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.message .avatar img {
   width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.message-content {
+  max-width: 70%;
   word-wrap: break-word;
+  padding: 10px 20px;
+  border-radius: 10px;
+  width: fit-content;
 }
 
 .user {
+  justify-content: flex-end;
+  text-align: right;
+}
+.user .avatar {
+  order: 1;                    /* 头像位于右侧 */
+}
+
+.user .message-content {
   background-color: #e0f7fa;
-  align-self: flex-end;
+  margin-left: auto;
 }
 
 .ai {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.ai .message-content {
   background-color: #f1f1f1;
-  align-self: flex-start;
 }
 
 .input-box {
-  width: 800px; /* 输入框宽度填满聊天框 */
+  width: 100%;
   margin-bottom: 10px;
   margin-left: 20px;
 }
 
 .submit-btn {
-  width: 20%; /* 提交按钮宽度 */
+  width: 20%;
   background-color: #42b983;
   color: white;
 }
@@ -209,8 +209,8 @@ const submitQuestion = async () => {
 /* 历史记录部分 */
 .history-box {
   background-color: #f9f9f9;
-  width: 28%; /* 历史记录框占 28% 宽度 */
-  max-height: 600px; /* 设置最大高度 */
+  width: 28%; 
+  max-height: 600px;
   overflow-y: auto;
   padding: 20px;
   border-radius: 8px;
@@ -232,9 +232,5 @@ const submitQuestion = async () => {
 
 .history-box li {
   margin-bottom: 10px;
-}
-
-.history-box .message {
-  margin: 5px 0;
 }
 </style>
