@@ -12,7 +12,7 @@
     "@kangc/v-md-editor": "^2.3.18",
     "axios": "^1.7.7",
     "core-js": "^3.8.3",
-    "element-plus": "^2.8.7",
+    "element-plus": "^2.9.0",
     "element-ui": "^2.15.14",
     "encryptlong": "^3.1.4",
     "eslint-plugin-html": "^8.1.2",

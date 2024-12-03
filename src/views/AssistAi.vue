@@ -6,14 +6,15 @@
         <div class="chat-wrapper">
           <!-- 聊天框 -->
           <div class="chat-box">
-            <el-scrollbar class="chat-container">
+            <el-scrollbar class="chat-container" ref="scrollbarRef">
               <div 
+                ref="innerRef"
                 v-for="(msg, index) in conversation"
                 :key="index"
                 :class="['message', msg.isUser ? 'user' : 'ai']"
               >
                 <div class="avatar">
-                  <el-avatar :src="msg.isUser ? image : require('@/assets/ai.png')" alt="avatar" />
+                  <el-avatar :src="msg.isUser ? imageBase64 : require('@/assets/ai.png')" alt="avatar" />
                 </div>
                 <div class="message-content">
                   <p v-html="msg.text"></p>
@@ -42,7 +43,7 @@
               >
                 <div :class="['message', msg.isUser ? 'user' : 'ai']">
                   <div class="avatar">
-                    <el-avatar :src="msg.isUser ? image : require('@/assets/ai.png')" alt="avatar" />
+                    <el-avatar :src="msg.isUser ? imageBase64 : require('@/assets/ai.png')" alt="avatar" />
                   </div>
                   <div class="message-content">
                     <p v-html="msg.text"></p>
@@ -71,13 +72,23 @@ const $api = globalProperties.$api
 const userInput = ref("");
 const conversation = ref([]);
 const md = new MarkdownIt();
+const imageBase64 = ref("");
+
+const innerRef = ref()
+const scrollbarRef = ref(null);
+
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
-    image.value = image_url + user.value.avatar;
+    //image.value = image_url + user.value.avatar;
   }
+  const storedAvatar = localStorage.getItem("avatar");
+  if (storedAvatar) {
+    imageBase64.value = storedAvatar;
+  }
+  scrollToBottom();
 });
 // 提交问题
 const submitQuestion = async () => {
@@ -88,23 +99,36 @@ const submitQuestion = async () => {
   const question = userInput.value;
   userInput.value = ""; // 清空输入框
 
+  // 等待 DOM 更新后滚动到底部
+  nextTick(() => {
+      scrollToBottom();
+  });
   try {
     // 假设后端接口是 /get_answer
     const response = await $api.AiApi.chat(question)
-    console.log(response)
+    //console.log(response)
 
     // 获取AI的回答并加入对话
     conversation.value.push({ text: md.render(response.data.choices[0].message.content), isUser: false });
 
     // 等待 DOM 更新后滚动到底部
     nextTick(() => {
-      const chatContainer = document.querySelector(".chat-container");
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      scrollToBottom();
     });
+
   } catch (error) {
     console.error("Error:", error);
     conversation.value.push({ text: "发生错误，请稍后再试。", isUser: false });
   }
+};
+
+//滚动面板自动滑动到底部
+const scrollToBottom = () => {
+    if (scrollbarRef.value) {
+        const container = scrollbarRef.value.$el.querySelector('.el-scrollbar__wrap');
+        container.style.scrollBehavior = 'smooth'; // 添加平滑滚动效果
+        container.scrollTop = container.scrollHeight;
+    }
 };
 </script>
 

@@ -39,7 +39,7 @@ const AiApi = {
             "model": "grok-beta"
         }
         return axios({
-            url: "https://api.x.ai/v1/chat/completions",
+            url: "/chatapi/v1/chat/completions",
             method: "post",
             data: JSON.stringify(request_body),
             headers:{

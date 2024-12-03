@@ -8,6 +8,7 @@ export default createStore({
     token: localStorage.getItem('token') ? localStorage.getItem('token') : null,
 
     article: localStorage.getItem('article') ? localStorage.getItem('article') : null,
+    avatar: localStorage.getItem('avatar') ? localStorage.getItem('avatar') : null
   },
   mutations: {
     setUser(state, user) {
@@ -27,6 +28,10 @@ export default createStore({
     setArticle(state, article) {
       state.article = article
       localStorage.setItem('article', JSON.stringify(article))
+    },
+    setAvatar(state, avatar) {
+      state.avatar = avatar
+      localStorage.setItem('avatar', avatar)
     }
   }
 })
