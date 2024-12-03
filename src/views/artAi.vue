@@ -1,253 +1,256 @@
 <template>
-  <div class="home">
+  <div class="drawing-assistant">
     <el-container>
       <el-footer>
-        <!-- 聊天框和历史记录区域并排 -->
-        <div class="chat-wrapper">
-          <!-- 聊天框 -->
-          <div class="chat-box">
-            <el-scrollbar class="chat-container">
-              <div 
-                v-for="(msg, index) in conversation"
-                :key="index"
-                :class="['message', msg.isUser ? 'user' : 'ai']"
-              >
-                <p v-html="msg.text"></p>
-              </div>
-            </el-scrollbar>
+        <div class="drawing-wrapper">
+          <!-- 输入框和提交按钮区域 -->
+          <div class="input-box-wrapper">
             <el-input
-              v-model="userInput"
-              placeholder="请输入你的内容..."
-              @keyup.enter="submitQuestion"
+              v-model="userInput.prompt"
+              placeholder="想要的元素..."
+              @keyup.enter="submitDrawing"
               clearable
               class="input-box"
             />
-            <el-button @click="submitQuestion" type="primary" class="submit-btn"
-              >提交</el-button
-            >
+            <el-input
+              v-model="userInput.negative_prompt"
+              placeholder="不想要的元素..."
+              clearable
+              class="input-box"
+            />
+            <el-input
+              v-model="userInput.step"
+              placeholder="迭代次数"
+              clearable
+              class="input-box"
+            />
+            <el-input
+              v-model="userInput.n"
+              placeholder="生成张数"
+              clearable
+              class="input-box"
+            />
+            <el-button @click="submitDrawing" type="primary" class="submit-btn">
+              提交
+            </el-button>
           </div>
 
-          <!-- 历史记录部分 -->
-          <div class="history-box">
-            <h3>历史记录</h3>
-            <ul>
-              <li
-                v-for="(msg, index) in conversation.slice().reverse()"
-                :key="index"
-              >
-                <div :class="['message', msg.isUser ? 'user' : 'ai']">
-                  <p v-html="msg.text"></p>
-                </div>
-              </li>
-            </ul>
+          <!-- 尺寸选择 -->
+          <div class="extra-options">
+            <el-select v-model="userInput.size" placeholder="选择图像尺寸" class="input-box">
+              <el-option label="1024x1024" value="1024x1024" />
+              <el-option label="512x512" value="512x512" />
+              <el-option label="256x256" value="256x256" />
+            </el-select>
           </div>
+
+          <!-- 显示生成的图像 -->
+            <!-- 显示生成的图像 -->
+          <div v-if="images.length > 0" class="image-container">
+            <div v-for="(img, index) in images" :key="index">
+              <img :src="img" alt="生成的图像" class="generated-image" :style="imageStyle" />
+            </div>
+          </div>
+
+          <!-- 提示信息 -->
+          <div v-if="loading" class="loading-message">正在生成图像，请稍候...</div>
+          <div v-if="error" class="error-message">发生错误，请稍后再试。</div>
         </div>
-        <img :src="image" alt="图片未上传" />
       </el-footer>
     </el-container>
   </div>
 </template>
 
 <script setup>
-import MarkdownIt from "markdown-it";
-import 'github-markdown-css';
-import { ref, nextTick, getCurrentInstance } from "vue";
+import { ref, nextTick, getCurrentInstance, watch } from "vue";
 
-const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
-const $api = globalProperties.$api
-const image = ref("")
+// 获取全局挂载的 $api 对象
+const globalProperties = getCurrentInstance().appContext.config.globalProperties;
+const $api = globalProperties.$api;
 
-const userInput = ref("");
-const conversation = ref([]);
-const md = new MarkdownIt();
+const userInput = ref({
+  prompt: "",           // 用户输入的文本描述
+  negative_prompt: "",  // 用户输入的负面提示（不想要的元素）
+  size: "1024x1024", 
+  step:""   ,          //迭代次数
+  n:""
+});
 
-// 提交问题
-const submitQuestion = async () => {
-  if (!userInput.value.trim()) return;
+const images = ref([]);  // 改为数组来存储多张图像
+const image = ref();
+const loading = ref(false); // 控制加载状态
+const error = ref(false);   // 控制错误状态
 
-  // 用户提问，加入对话
-  conversation.value.push({ text: md.render(userInput.value), isUser: true });
-  const prompt = userInput.value;
-  userInput.value = ""; // 清空输入框
+// 存储图像的尺寸
+const imageStyle = ref({
+  width: "1024px",  // 默认 1024x1024
+  height: "1024px", // 默认 1024x1024
+});
 
+// 监听尺寸变化，更新图像的宽高
+watch(() => userInput.value.size, (newSize) => {
+  const [width, height] = newSize.split('x');
+  imageStyle.value = { width: `${width}px`, height: `${height}px` };
+});
+
+// 提交生成图像请求
+
+
+const submitDrawing = async () => {
+  if (!userInput.value.prompt.trim()) return; // 确保用户输入了内容
+  if (userInput.value.step && isNaN(userInput.value.step)) {   //检查 step 是否为有效数字
+    return;
+  }
+  loading.value = true;  // 开始加载状态
+  error.value = false;   // 清除之前的错误信息
+
+  const { prompt, negative_prompt, size, step, n } = userInput.value;
   try {
-    // 假设后端接口是 /get_answer
+    // 获取 access_token
     const res = await $api.AiApi.get_access_token();
     const access_token = res.data.access_token;
-    console.log(access_token);
-    $api.AiApi.art({
+
+    // 调用绘画接口
+    const response = await $api.AiApi.art({
       access_token: access_token,
       prompt: prompt,
-    })
-    .then((res) => {
-      console.log(res);
-      const data = res.data.data;
-      image.value = 'data:image/png;base64,' +  data[0].b64_image;
-      //console.log(image.value)
-    })
-  
+      negative_prompt: negative_prompt,  // 添加负面提示
+      size: size,                        // 添加尺寸选项
+      steps: step,                        // 迭代次数
+      n: n,                               // 生成张数
+      sampler_index: "DPM++ SDE Karras",
+    });
 
-    // 获取AI的回答并加入对话
-    //conversation.value.push({ text: md.render(response.data.choices[0].message.content), isUser: false });
-
-    // 等待 DOM 更新后滚动到底部
+    const data = response.data.data;
+    console.log(data)
+    images.value = data.map(item => 'data:image/png;base64,' + item.b64_image); // 保存多张图像
+  } catch (err) {
+    console.error("Error:", err);
+    error.value = true;  // 出现错误时设置错误状态
+  } finally {
+    loading.value = false;  // 请求完成，取消加载状态
     nextTick(() => {
-      const chatContainer = document.querySelector(".chat-container");
+      const chatContainer = document.querySelector(".drawing-wrapper");
       chatContainer.scrollTop = chatContainer.scrollHeight;
     });
-  } catch (error) {
-    console.error("Error:", error);
-    conversation.value.push({ text: "发生错误，请稍后再试。", isUser: false });
   }
 };
+
 </script>
 
 <style scoped lang="less">
-.home {
+.drawing-assistant {
   height: 100%;
   margin-top: 0;
+  background-color: #f0f2f5; /* 设置背景色 */
 }
 
-:deep(.el-header) {
-  height: 50px; /* 缩小标题区域的高度 */
-  background-color: #2c3e50;
-  color: white;
-  padding-bottom: 5px;
-}
-
-.title {
-  margin-left: 20px; /* 缩小标题的左边距，使其更靠近左侧 */
-  font-size: 22px; /* 减小字体大小 */
-  padding-bottom: 5px;
-  margin-bottom: 0;
-  text-align: center;
-}
-
-.function {
-  background-color: #2c3e50;
-  padding: 0;
-  margin: 0;
-}
-
-.function ul {
+.drawing-wrapper {
   display: flex;
-  padding: 0;
-  margin: 0;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 20px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;  /* 圆角 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 阴影效果 */
 }
 
-.function li {
-  margin-left: 30px; /* 缩小导航项的间距 */
-  font-size: 24px; /* 减小字体大小 */
-  list-style: none;
-}
-
-.function a {
-  text-decoration: none;
-  color: white;
-}
-
-.function a:hover {
-  background-color: #34495e;
-}
-
-.router-link-active {
-  background-color: #42b983;
-  color: white;
-  border-radius: 5px;
-}
-
-/* 聊天框和历史记录部分的容器 */
-.chat-wrapper {
+.input-box-wrapper {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  max-width: 1200px;
-  margin: 20px auto;
-}
-
-/* 聊天框部分 */
-.chat-box {
-  background-color: white;
-  width: 100%; /* 聊天框占 70% 宽度 */
+  margin-bottom: 20px;
   max-width: 800px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  height: 600px; /* 增加聊天框的高度 */
-}
-
-.chat-container {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-.message {
-  padding: 10px 20px;
-  margin: 8px 0;
-  border-radius: 10px;
-  width: 100%;
-  word-wrap: break-word;
-}
-
-.user {
-  background-color: #e0f7fa;
-  align-self: flex-end;
-}
-
-.ai {
-  background-color: #f1f1f1;
-  align-self: flex-start;
 }
 
 .input-box {
-  width: 800px; /* 输入框宽度填满聊天框 */
-  margin-bottom: 10px;
-  margin-left: 20px;
+  flex: 1;
+  margin-right: 10px;
+  width: 200px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  background-color: #f7f7f7;
+  transition: border-color 0.3s ease;
+}
+
+.input-box:focus {
+  border-color: #42b983;
 }
 
 .submit-btn {
-  width: 20%; /* 提交按钮宽度 */
   background-color: #42b983;
   color: white;
+  width: 100px;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
 }
 
 .submit-btn:hover {
   background-color: #367f5b;
 }
 
-/* 历史记录部分 */
-.history-box {
-  background-color: #f9f9f9;
-  width: 28%; /* 历史记录框占 28% 宽度 */
-  max-height: 600px; /* 设置最大高度 */
-  overflow-y: auto;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+.extra-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
 }
 
-.history-box h3 {
-  margin-bottom: 15px;
-  text-align: center;
-  font-size: 20px;
-  color: #333;
-}
-
-.history-box ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.history-box li {
+.extra-options .input-box {
+  width: 350px;
+  max-width: 600px;
   margin-bottom: 10px;
 }
 
-.history-box .message {
-  margin: 5px 0;
+.image-container {
+  margin-top: 20px;
+  text-align: center;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.generated-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px; /* 给图像加圆角 */
+}
+
+.loading-message {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #42b983;
+}
+
+.error-message {
+  margin-top: 20px;
+  font-size: 16px;
+  color: red;
+}
+
+@media (max-width: 768px) {
+  .input-box-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .input-box {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .submit-btn {
+    margin-top: 10px;
+  }
 }
 </style>

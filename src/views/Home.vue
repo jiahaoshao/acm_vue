@@ -23,7 +23,7 @@
                 <el-avatar
                   shape="circle"
                   :size="50"
-                  :src="image"
+                  :src="imageBase64"
                   @click="goToSpace"
                   class="avatar"
                   style="cursor: pointer"
@@ -33,7 +33,6 @@
                 <el-avatar
                   shape="circle"
                   :size="50"
-                  :src="image"
                   @click="goToLogin"
                   class="avatar"
                   style="cursor: pointer"
@@ -107,30 +106,58 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { getCurrentInstance, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import myJson from "@/../public/static/config.json";
 
 const { image_url } = myJson;
 
+
+const globalProperties =
+  getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
+const $api = globalProperties.$api;
+
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
 
 const user = ref({});
-const image = ref("");
+//const image = ref("");
 const isLoggedIn = ref(false);
+const imageBase64 = ref("");
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
-    image.value = image_url + user.value.avatar;
-    console.log(image.value);
+    //image.value = image_url + user.value.avatar;
+    //console.log(image.value);
     isLoggedIn.value = true;
   }
+  const storedAvatar = localStorage.getItem("avatar");
+  if (storedAvatar) {
+    imageBase64.value = storedAvatar;
+  } else {
+    getAvatar();
+  }
 });
+
+const getAvatar = () => {
+  $api.userApi.getavatarbase64({
+    filePath: user.value.avatar
+  })
+  .then((res) => {
+    console.log(res);
+    if(res.status === 200){
+      imageBase64.value = `data:image/png;base64,${res.data}`;
+      console.log(imageBase64.value);
+      store.commit("setAvatar", imageBase64.value);
+    } else {
+      Element.Message.error("图片获取失败");
+    }
+  });
+}
 
 const goToLogin = () => {
   router.push("/login"); // 跳转到登录页面
