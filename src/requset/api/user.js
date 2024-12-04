@@ -18,7 +18,7 @@ const userApi = {
         return axios.get('user/update', {params : params});
     },
     getavatarbase64(params){
-        return axios.get('download/getimagebase64', {params : params});
+        return axios.get('github/download_base64', {params : params});
     }
 }
 

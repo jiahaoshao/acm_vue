@@ -8,7 +8,8 @@ export default createStore({
     token: localStorage.getItem('token') ? localStorage.getItem('token') : null,
 
     article: localStorage.getItem('article') ? localStorage.getItem('article') : null,
-    avatar: localStorage.getItem('avatar') ? localStorage.getItem('avatar') : null
+    avatar: localStorage.getItem('avatar') ? localStorage.getItem('avatar') : null,
+    access_token: localStorage.getItem('access_token') ? localStorage.getItem('access_token') : null
   },
   mutations: {
     setUser(state, user) {
@@ -24,6 +25,8 @@ export default createStore({
       state.token = null
       localStorage.removeItem('user')
       state.user = null
+      localStorage.removeItem("avatar")
+      state.avatar = null
     },
     setArticle(state, article) {
       state.article = article
@@ -32,6 +35,10 @@ export default createStore({
     setAvatar(state, avatar) {
       state.avatar = avatar
       localStorage.setItem('avatar', avatar)
+    },
+    setAccessToken(state, access_token) {
+      state.access_token = access_token
+      localStorage.setItem('access_token', access_token)
     }
   }
 })

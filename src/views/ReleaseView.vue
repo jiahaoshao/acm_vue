@@ -20,7 +20,7 @@
                 <el-avatar
                   shape="circle"
                   :size="50"
-                  :src="image"
+                  :src="imageBase64"
                   @click="goToSpace"
                   class="avatar"
                   style="cursor: pointer; "
@@ -111,6 +111,7 @@
         <el-button class="release-button" @click="Release">发布</el-button>
         <el-button class="draft-button" @click="Draft">存草稿</el-button>
       </div>
+      <!-- <img referrerpolicy="no-referrer" src="https://gitee.com/sauerkraut001/picture-bed/raw/master/uploadimg/2024-12/1733306903017_fce2a147-bd2e-4404-ab9d-1d06e2ebb1e6.png" alt="avatar"/> -->
     </div>
   </div>
 </template>
@@ -133,12 +134,14 @@ let article = ref({});
 const user = ref({});
 const newTag = ref(""); // 用于存储新标签的输入值
 const image = ref("");
+const imageBase64 = ref("");
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(storedUser);
-    image.value = image_url + user.value.avatar;
+    //image.value = image_url + user.value.avatar;
+    imageBase64.value = user.value.avatar;
   }
 
   //localStorage.removeItem("article");
@@ -160,6 +163,11 @@ onMounted(() => {
   console.log(article.value);
 
   store.commit("setArticle", article.value);
+
+  const storedAvatar = localStorage.getItem("avatar");
+  if (storedAvatar) {
+    imageBase64.value = storedAvatar;
+  }
 });
 
 const goToInfo = () => {
@@ -179,27 +187,31 @@ const signout = () => {
   location.reload();
 };
 
-const handleUploadImage = (event, insertImage, files) => {
-  const formData = new FormData();
-  for (let i = 0; i < files.length; i++) {
-    formData.append("files", files[i]);
-    $api.articleApi
-      .uploadArticleImages(formData)
-      .then((res) => {
-        //console.log(res);
-        const imageUrl = res.data.data; // 假设返回的数据包含图片URL
-        console.log(files[i]);
-        insertImage({
-          url: image_url + imageUrl,
-          desc: files[i].name,
-          width: "auto",
-          height: "auto",
-        });
-      })
-      .catch((error) => {
-        console.error("上传图片失败", error);
+const handleUploadImage = (event, insertImage, file) => {
+
+
+  $api.articleApi
+    .uploadArticleImages({
+      file: file[0],
+      filepath: "images/article/",
+    })
+    .then((res) => {
+      console.log(res);
+      if (res.data.code !== 0) {
+        ElMessage.error(res.data.message);
+        return;
+      }
+      const imageUrl = res.data.data; // 假设返回的数据包含图片URL
+      insertImage({
+        url: imageUrl,
+        desc: file[0].name,
+        // width: "auto",
+        // height: "auto",
       });
-  }
+    })
+    .catch((error) => {
+      console.error("上传图片失败", error);
+    });
 };
 
 // 处理标签输入
@@ -259,6 +271,7 @@ const Release = () => {
       console.log(res);
       localStorage.removeItem("article");
       ElMessage.success("发布成功");
+      router.back();
     });
 };
 
@@ -280,6 +293,7 @@ const Draft = () => {
       console.log(res);
       localStorage.removeItem("article");
       ElMessage.success("保存成功");
+      router.back();
     });
 };
 </script>

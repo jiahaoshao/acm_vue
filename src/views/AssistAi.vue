@@ -64,7 +64,7 @@ import 'github-markdown-css';
 import {  nextTick, getCurrentInstance } from "vue";
 import { onMounted, ref } from "vue";
 import myJson from "@/../public/static/config.json";
-const { image_url } = myJson;
+const { image_url , system_content} = myJson;
 const user = ref({});
 const image = ref("");
 const globalProperties = getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
@@ -83,11 +83,12 @@ onMounted(() => {
   if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
     //image.value = image_url + user.value.avatar;
+    imageBase64.value = user.value.avatar;
   }
-  const storedAvatar = localStorage.getItem("avatar");
-  if (storedAvatar) {
-    imageBase64.value = storedAvatar;
-  }
+  // const storedAvatar = localStorage.getItem("avatar");
+  // if (storedAvatar) {
+  //   imageBase64.value = storedAvatar;
+  // }
   scrollToBottom();
 });
 // 提交问题
@@ -105,7 +106,10 @@ const submitQuestion = async () => {
   });
   try {
     // 假设后端接口是 /get_answer
-    const response = await $api.AiApi.chat(question)
+    const response = await $api.AiApi.chat({
+      systemContent: system_content,
+      userContent: question
+    })
     //console.log(response)
 
     // 获取AI的回答并加入对话

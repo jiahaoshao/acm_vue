@@ -151,7 +151,7 @@ const Signin = async () => {
       showCode.value = false;
       store.commit('setToken',response.data.token)
       store.commit('setUser',response.data.user)
-      ElMessage.success(response.data.message);
+      ElMessage.success("登录成功");
       router.push('/home')
       resetloginForm();
     } else {
@@ -165,6 +165,21 @@ const Signin = async () => {
     ElMessage.error('登录失败');
   }
 };
+
+const getAvatar = (avatar) => {
+  $api.userApi.getavatarbase64({
+    fileUrl: avatar,
+  })
+  .then((res) => {
+    console.log(res);
+    if(res.status === 200){
+      store.commit("setAvatar", res.data);
+
+    } else {
+      Element.Message.error("头像获取失败");
+    }
+  });
+}
 
 const Signup = () => {
   router.push("/register");

@@ -129,28 +129,29 @@ onMounted(() => {
     //image.value = image_url + user.value.avatar;
     //console.log(image.value);
     isLoggedIn.value = true;
+    imageBase64.value = user.value.avatar;
   }
-  const storedAvatar = localStorage.getItem("avatar");
-  if (storedAvatar) {
-    imageBase64.value = storedAvatar;
-  } else {
-    getAvatar();
-  }
-  const getAvatar = () => {
-  $api.userApi.getavatarbase64({
-    filePath: user.value.avatar
-  })
-  .then((res) => {
-    console.log(res);
-    if(res.status === 200){
-      imageBase64.value = `data:image/png;base64,${res.data}`;
-      console.log(imageBase64.value);
-      store.commit("setAvatar", imageBase64.value);
-    } else {
-      Element.Message.error("图片获取失败");
-    }
-  });
-}
+  // const storedAvatar = localStorage.getItem("avatar");
+  // if (storedAvatar) {
+  //   imageBase64.value = storedAvatar;
+  // } else {
+  //   getAvatar();
+  // }
+  // const getAvatar = () => {
+  // $api.userApi.getavatarbase64({
+  //   fileUrl: user.value.avatar,
+  // })
+  // .then((res) => {
+  //   console.log(res);
+  //   if(res.status === 200){
+  //     imageBase64.value = res.data;
+  //     //console.log(imageBase64.value);
+  //     store.commit("setAvatar", imageBase64.value);
+  //   } else {
+  //     Element.Message.error("头像获取失败");
+  //   }
+  // });
+  // }
 });
 
 const goToLogin = () => {

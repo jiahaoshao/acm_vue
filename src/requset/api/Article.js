@@ -8,9 +8,29 @@ const articleApi = {
       }
     });
   },
+  // uploadArticleImages(params){
+  //   return axios({
+  //       url: "upload/article_images",
+  //       method: "post",
+  //       data: params,
+  //       headers:{
+  //           'Content-Type': 'multipart/form-data',
+  //       }
+  //   })
+  // },
+  // uploadArticleImages(params){
+  //   return axios({
+  //       url: "upload/uploadImg",
+  //       method: "post",
+  //       data: params,
+  //       headers:{
+  //           'Content-Type': 'multipart/form-data',
+  //       }
+  //   })
+  // },
   uploadArticleImages(params){
     return axios({
-        url: "upload/article_images",
+        url: "github/upload",
         method: "post",
         data: params,
         headers:{

@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, getCurrentInstance, watch } from "vue";
+import { ref, nextTick, getCurrentInstance, watch, onMounted } from "vue";
 
 // 获取全局挂载的 $api 对象
 const globalProperties = getCurrentInstance().appContext.config.globalProperties;
@@ -80,6 +80,7 @@ const images = ref([]);  // 改为数组来存储多张图像
 const image = ref();
 const loading = ref(false); // 控制加载状态
 const error = ref(false);   // 控制错误状态
+const access_token = ref("");  // 存储 access_token
 
 // 存储图像的尺寸
 const imageStyle = ref({
@@ -95,6 +96,25 @@ watch(() => userInput.value.size, (newSize) => {
 
 // 提交生成图像请求
 
+onMounted(() => {
+  const storedAccessToken = localStorage.getItem("access_token");
+  if (storedAccessToken) {
+    get_access_token();
+    access_token.value = storedAccessToken;
+  } else {
+    get_access_token();
+  }
+});
+
+const get_access_token = () =>{
+  $api.AiApi.get_access_token()
+  .then((res) => {
+    console.log(res);
+    access_token.value = res.data.access_token;
+    localStorage.setItem("access_token", res.data.access_token);
+  })
+  
+}
 
 const submitDrawing = async () => {
   if (!userInput.value.prompt.trim()) return; // 确保用户输入了内容
@@ -106,13 +126,10 @@ const submitDrawing = async () => {
 
   const { prompt, negative_prompt, size, step, n } = userInput.value;
   try {
-    // 获取 access_token
-    const res = await $api.AiApi.get_access_token();
-    const access_token = res.data.access_token;
 
     // 调用绘画接口
     const response = await $api.AiApi.art({
-      access_token: access_token,
+      access_token: access_token.value,
       prompt: prompt,
       negative_prompt: negative_prompt,  // 添加负面提示
       size: size,                        // 添加尺寸选项
