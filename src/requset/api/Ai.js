@@ -7,11 +7,15 @@ const AiApi = {
         return axios.post("/ai/get_access_token");
     },
     chat(params){
-        return axios.get("/ai/chat", {params: params})
+        return axios.post("/ai/chat", params)
+    },
+    getchats(params){
+        return axios.get("/ai/getchats", {params : params})
     },
     art(params){
         return axios.post("/ai/art", params)
-    }
+    },
+
     // get_access_token(){
     //     const client_id = "RNLjFTsINgFUlLhiQotE1X03"  // 替换为您的API Key
     //     const client_secret = "t12jZNww9mE6OQMZQFOC0ZItw5gwpZX4"  // 替换为您的Secret Key

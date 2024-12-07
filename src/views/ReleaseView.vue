@@ -106,6 +106,7 @@
         :disabled-menus="[]"
         @upload-image="handleUploadImage"
         @save="saveArticle"
+        
       ></v-md-editor>
       <div class="button-container">
         <el-button class="release-button" @click="Release">发布</el-button>
@@ -119,9 +120,9 @@
 <script setup>
 import { getCurrentInstance, onMounted, ref } from "vue";
 import myJson from "@/../public/static/config.json";
-import { ElMessage } from "element-plus";
+import { ElLoading, ElMessage } from "element-plus";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
 
 const router = useRouter();
 const store = useStore();
@@ -135,6 +136,7 @@ const user = ref({});
 const newTag = ref(""); // 用于存储新标签的输入值
 const image = ref("");
 const imageBase64 = ref("");
+const shouldConfirm = ref(true); // 添加标志位，初始值为 true
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
@@ -168,6 +170,29 @@ onMounted(() => {
   if (storedAvatar) {
     imageBase64.value = storedAvatar;
   }
+
+  // 添加页面关闭提示
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+const handleBeforeUnload = (event) => {
+    event.preventDefault();
+    event.returnValue = '';
+};
+
+onBeforeRouteLeave((to, from, next) => {
+  if (shouldConfirm.value) {
+    const answer = window.confirm('您有未保存的更改，是否要保存？');
+    if (answer) {
+      // 调用保存函数
+      saveArticle();
+      next(); // 继续导航
+    } else {
+      next(false); // 取消导航
+    }
+  } else {
+    next(); // 继续导航
+  }
 });
 
 const goToInfo = () => {
@@ -188,7 +213,12 @@ const signout = () => {
 };
 
 const handleUploadImage = (event, insertImage, file) => {
-
+  // 启动加载动画
+  const loadingInstance = ElLoading.service({
+    lock: true,
+    text: '正在上传图片...',
+    background: 'rgba(0, 0, 0, 0.7)',
+  });
 
   $api.articleApi
     .uploadArticleImages({
@@ -196,7 +226,9 @@ const handleUploadImage = (event, insertImage, file) => {
       filepath: "images/article/",
     })
     .then((res) => {
-      console.log(res);
+      // 关闭加载动画
+      loadingInstance.close();
+
       if (res.data.code !== 0) {
         ElMessage.error(res.data.message);
         return;
@@ -205,12 +237,15 @@ const handleUploadImage = (event, insertImage, file) => {
       insertImage({
         url: imageUrl,
         desc: file[0].name,
-        // width: "auto",
-        // height: "auto",
+        width: "300",
+        height: "auto",
       });
     })
     .catch((error) => {
-      console.error("上传图片失败", error);
+      // 出现错误时也需要关闭加载动画
+      loadingInstance.close();
+      //console.error("上传图片失败", error);
+      ElMessage.error("上传图片失败");
     });
 };
 
@@ -254,8 +289,27 @@ const getArticle = () => {
 };
 
 const Release = () => {
+  shouldConfirm.value = false; // 在点击发布按钮时，设置标志位为 false
   store.commit("setArticle", article.value);
   getArticle();
+
+  if(!article.value.title) {
+    ElMessage.error("标题不能为空");
+    return;
+  }
+  if(!article.value.classify) {
+    ElMessage.error("请选择分区");
+    return;
+  }
+  if(article.value.tags.length === 0) {
+    ElMessage.error("请添加标签");
+    return;
+  }
+  if(!article.value.content) {
+    ElMessage.error("正文内容不能为空");
+    return;
+  }
+
   $api.articleApi
     .updateArticle({
       aid: article.value.aid,
@@ -276,6 +330,7 @@ const Release = () => {
 };
 
 const Draft = () => {
+  shouldConfirm.value = false; // 在点击发布按钮时，设置标志位为 false
   saveArticle();
   getArticle();
   $api.articleApi

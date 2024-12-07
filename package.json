@@ -19,6 +19,7 @@
     "github-markdown-css": "^5.8.0",
     "jsencrypt": "^3.3.2",
     "markdown-it": "^14.1.0",
+    "markdown-it-attrs": "^4.3.0",
     "querystring": "^0.2.1",
     "vant": "^4.9.8",
     "vue": "^3.2.13",

@@ -40,6 +40,9 @@ const articleApi = {
   },
   updateArticle(params){
     return axios.post('/articles/update_article', params);
+  },
+  getArticleByAid(params){
+    return axios.get('/articles/getarticlebyaid', {params:params});
   }
 };
 

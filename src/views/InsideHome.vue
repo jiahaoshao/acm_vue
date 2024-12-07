@@ -1,8 +1,19 @@
 <template>
   <div class="article-container">
-    <div v-for="article in articles" :key="article.aid" class="article-card">
+    <div v-for="article in articles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
+      <div class="author-info" >
+        <el-avatar
+          shape="circle"
+          :size="30"
+          :src="article.author.avatar"
+          @click="goToSpace(article.author.uid)"
+          class="author-avatar"
+          style="cursor: pointer"
+          ></el-avatar>
+        <span class="author-name" @click="goToSpace(article.author.uid)" style="cursor: pointer">{{ article.author.username }}</span>
+      </div>
       <h3 class="article-title">{{ article.title }}</h3>
-      <p class="article-content" v-html="parseMarkdown(article.content)"></p>
+      <v-md-preview :text="article.content"></v-md-preview>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -11,10 +22,13 @@
   
 <script setup>
 import MarkdownIt from "markdown-it";
+import markdownItAttrs from "markdown-it-attrs";
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 
-const md = new MarkdownIt();
+
+const router = useRouter();
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api;
@@ -31,6 +45,15 @@ const loadArticles = async () => {
     const res = await $api.articleApi.getArticle(page.value, limit.value);
     //console.log(res)
     const data = res.data;
+    for (const article of data.data) {
+      const authorRes = await $api.userApi.getuserbyuid({ uid: article.authorId });
+      console.log(authorRes)
+      if (authorRes.status === 200) {
+        article.author = authorRes.data.data;
+      } else {
+        article.author = { avatar: 'https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png', username: '未知作者' }; // 默认作者信息
+      }
+    }
     articles.value.push(...data.data);
     hasMore.value = data.hasMore;
   } catch (err) {
@@ -41,9 +64,15 @@ const loadArticles = async () => {
   }
 };
 
-const parseMarkdown = (content) => { 
-  return md.render(content); 
+const goToSpace = (uid) => {
+  router.push({ path: `/space/${uid}` });
 };
+
+const goToArticle = (aid) => {
+  router.push({ path: `/article/${aid}` });
+};
+
+
 
 const handleScroll = () => {
   const scrollHeight = document.documentElement.scrollHeight; // 文档的总高度
@@ -95,6 +124,12 @@ onMounted(() => {
   word-wrap: break-word;
 }
 
+.article-content img {
+  max-width: 50%;
+  height: auto;
+  display: block;
+}
+
 /* 加载中提示 */
 .loading {
   text-align: center;
@@ -123,6 +158,27 @@ body {
   padding: 0;
   font-family: Arial, sans-serif;
   background-color: #f7f7f7;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.author-avatar {
+  margin-right: 10px;
+}
+
+.author-name {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.loading, .no-more {
+  text-align: center;
+  font-size: 16px;
+  color: #888;
 }
 </style>
   

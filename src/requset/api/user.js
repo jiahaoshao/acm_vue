@@ -19,6 +19,9 @@ const userApi = {
     },
     getavatarbase64(params){
         return axios.get('github/download_base64', {params : params});
+    },
+    getuserbyuid(params){
+        return axios.get('user/finduserbyuid', {params : params});
     }
 }
 

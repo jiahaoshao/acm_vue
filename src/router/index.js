@@ -1,90 +1,52 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
-import login from '../views/LoginView.vue'
-import register from '../views/RegisterView.vue'
-import resetpsw from '../views/ResetPswView.vue'
-import home from '@/views/Home.vue'
-import info from '@/views/Info.vue'
-import chatai from '@/views/AssistAi.vue'
-import about from '@/views/About.vue'
-import home2 from '@/views/InsideHome.vue'
-import changeInfo from '@/views/ChangeInfo.vue'
-import changePassword from '@/views/ChangePassword.vue'
-import confirmPassword from '@/views/ConfirmPassword.vue'
+import Login from '../views/LoginView.vue'
+import Register from '../views/RegisterView.vue'
+import ResetPsw from '../views/ResetPswView.vue'
+import Home from '@/views/Home.vue'
+import Info from '@/views/Info.vue'
+import AssistAi from '@/views/AssistAi.vue'
+import About from '@/views/About.vue'
+import Home2 from '@/views/InsideHome.vue'
+import ChangeInfo from '@/views/ChangeInfo.vue'
+import ChangePassword from '@/views/ChangePassword.vue'
+import ConfirmPassword from '@/views/ConfirmPassword.vue'
 import { ElMessage } from 'element-plus'
 import Test from '@/views/test.vue'
 import musicAi from'@/views/musicAi.vue'
 import artAi from '@/views/artAi.vue'
-import ai from '@/views/Ai.vue'
+import Ai from '@/views/Ai.vue'
 import Release from '@/views/ReleaseView.vue'
 import Space from '@/views/SpaceView.vue'
 import PreView from '@/views/PreView.vue'
+import Article from '@/views/Article.vue'
 const routes = [
-  { path: '', redirect: '/home' },
-  { path: '/login', component: login },
-  { path: '/register',component: register},
-  { path: '/resetpsw',component: resetpsw},
-  {
-    path: '/ai',
-    component: ai,
-    children:[
-      {
-        path: '',
-        redirect: '/ai/chatai',
-      },
-      {
-        path: 'chatai',
-        component: chatai
-      },
-      {
-        path: 'musicai',
-        component: musicAi
-      },
-      {
-        path: 'artai',
-        component: artAi
-      }
+  { path: '/', redirect: '/home' },
+  { path: '/register', component: Register },
+  { path: '/login', component: Login },
+  { path: '/resetpsw', component: ResetPsw },
+  { path: '/home', component: Home, children: [
+      { path: '', redirect: '/home/home2' },
+      { path: 'home2', component: Home2 },
+      { path: 'info', component: Info },
+      { path: 'about', component: About },
+      { path: 'changeInfo', component: ChangeInfo },
+      { path: 'changePassword', component: ChangePassword },
+      { path: 'confirmPassword', component: ConfirmPassword }
     ]
   },
-  {
-    path:'/home',
-    component:home,
-    children:[
-      {
-        path: '',  // 默认子路由，如果访问 /home，会直接加载 home2 组件
-        redirect: '/home/home2',  // 默认重定向到 home2
-      },
-      {
-        path: 'home2',  // home2 子路由
-        component: home2
-      },
-      {
-        path:'info',
-        component:info,
-      },
-      {
-        path:'about',
-        component:about
-      },
-      {
-        path:'changeInfo',
-        component:changeInfo
-      },
-      {
-        path:'changePassword',
-        component:changePassword
-      },
-      {
-        path:'confirmPassword',
-        component:confirmPassword
-      }
-
+  { path: '/ai', component: Ai, children: [
+      { path: '', redirect: '/ai/assistai' },
+      { path: 'musicAi', component: musicAi },
+      { path: 'artAi', component: artAi },
+      { path: 'assistai', component: AssistAi }
     ]
   },
-  { path: '/test', component: Test},
-  { path: '/release', component: Release},
-  { path: '/space', component: Space},
-  { path: '/preview', component: PreView},
-]
+  { path: '/test', component: Test },
+  { path: '/release', component: Release },
+  { path: '/space/:uid', component: Space }, // 修改此行，添加动态参数 :uid
+  { path: '/preview', component: PreView },
+  { path: '/article/:aid', component: Article } // 修改此行，添加动态参数 :aid
+];
 
 const router = createRouter({
   history: createWebHashHistory(),

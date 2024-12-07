@@ -131,39 +131,10 @@ onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
-    //image.value = image_url + user.value.avatar;
-    //console.log(image.value);
-    //console.log(user.value);
     isLoggedIn.value = true;
     imageBase64.value = user.value.avatar;
   }
-  //getAvatar();
-  // const storedAvatar = localStorage.getItem("avatar");
-  // if (storedAvatar != null) {
-  //   imageBase64.value = storedAvatar;
-  // } else {
-  //   imageBase64.value = user.value.avatar;
-  //   //getAvatar();
-  // }
 });
-
-
-const getAvatar = () => {
-  imageBase64.value = user.value.avatar;
-  $api.userApi.getavatarbase64({
-    fileUrl: user.value.avatar,
-  })
-  .then((res) => {
-    console.log(res);
-    if(res.status === 200){
-      imageBase64.value = res.data;
-      //console.log(imageBase64.value);
-      store.commit("setAvatar", imageBase64.value);
-    } else {
-      Element.Message.error("头像获取失败");
-    }
-  });
-}
 
 const goToLogin = () => {
   router.push("/login"); // 跳转到登录页面

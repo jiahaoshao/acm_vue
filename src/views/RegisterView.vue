@@ -167,6 +167,32 @@ const sendEmailCode = async () => {
   }
 };
 
+const sendPhoneCode = async () => {
+  if (!registerForm.email) {
+    $message.error("请输入手机号");
+    return;
+  }
+  try {
+    const response = await $api.signApi.getPhoneVerifyCode({
+      phone: registerForm.phone,
+    });
+    console.log(response);
+    if (response.data.code == 200) {
+      $message.success("验证码已发送，请查收");
+      isCodeSent.value = true;
+      setTimeout(() => {
+        isCodeSent.value = false;
+      }, 60000);
+    } else {
+      $message.error(response.data.message);
+    }
+  } catch (error) {
+    console.error("Error: ", error);
+    $message.error("发送验证码失败，请重试");
+  }
+};
+
+
 const SignUp = async () => {
   if (!registerFormRef.value) return;
   registerFormRef.value.validate(async (valid) => {
