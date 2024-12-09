@@ -8,6 +8,7 @@
           <li><a href="#/ai" target="'_blank'">AI中心</a></li>
         </ul>
 
+        
         <!-- 右侧导航栏 -->
         <ul class="right-nav">
           <!-- 判断用户是否登录 -->
@@ -24,7 +25,7 @@
                   shape="circle"
                   :size="50"
                   :src="imageBase64"
-                  @click="goToSpace"
+                  @click="goToSpace(user.uid)"
                   class="avatar"
                   style="cursor: pointer"
                   v-if="isLoggedIn"
@@ -125,7 +126,7 @@ const store = useStore();
 const user = ref({});
 //const image = ref("");
 const isLoggedIn = ref(false);
-const imageBase64 = ref("");
+const imageBase64 = ref("https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png");
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
@@ -133,8 +134,17 @@ onMounted(() => {
     user.value = JSON.parse(localStorage.getItem("user"));
     isLoggedIn.value = true;
     imageBase64.value = user.value.avatar;
+    //console.log(user.value)
   }
 });
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ path: '/search', query: { q: searchQuery.value } });
+  } else {
+    ElMessage.warning('请输入搜索内容');
+  }
+};
 
 const goToLogin = () => {
   router.push("/login"); // 跳转到登录页面
@@ -148,8 +158,8 @@ const goToInfo = () => {
   router.push("/home/info");
 };
 
-const goToSpace = () => {
-  router.push("/space");
+const goToSpace = (uid) => {
+  router.push(`/space/${uid}`);
 };
 
 const goToRelease = () => {
@@ -202,6 +212,13 @@ const signout = () => {
   margin: 0 20px;
   display: flex; /* 使用 flex 布局 */
   align-items: center; /* 垂直居中 */
+}
+
+
+.search-input {
+  flex: 1;
+  max-width: 400px;
+  margin: 0 20px;
 }
 
 .left-nav li a,
@@ -257,7 +274,7 @@ const signout = () => {
   display: flex; /* 使用 flex 布局 */
   align-items: center; /* 垂直居中对齐 */
   justify-content: center; /* 水平居中对齐 */
-  padding: 10px 15px;
+  padding: 20px 15px;
   border-radius: 5px;
   background-color: #ef632b;
   border: none;

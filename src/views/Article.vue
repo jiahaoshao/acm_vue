@@ -114,20 +114,158 @@
           <span>{{ article.create_time }}</span>
           <span>作者：{{ article.authorId }}</span>
           <span>分类：{{ article.classify }}</span>
-          <el-tag
-            v-for="(tag, index) in article.tags"
-            :key="index"
-            @close="removeTag(index)"
-          >
+          <el-tag v-for="(tag, index) in article.tags" :key="index">
             {{ tag }}
           </el-tag>
         </div>
-        <!-- <div
+        <div
+          v-for="anchor in titles"
+          :key="anchor.lineIndex"
+          :style="{ padding: `10px 0 10px ${anchor.indent * 20}px` }"
+          @click="handleAnchorClick(anchor)"
+        >
+          <a class="anchor-link" style="cursor: pointer">{{ anchor.title }}</a>
+        </div>
+        <v-md-preview
+          :text="article.content"
           v-if="article.content"
-          v-html="parseMarkdown(article.content)"
-        ></div> -->
-        <v-md-preview :text="article.content" v-if="article.content"></v-md-preview>
+          ref="preview"
+        ></v-md-preview>
         <div v-else>内容加载中...</div>
+      </div>
+      <!-- 评论区 -->
+
+      <div style="margin: 20px 0">
+        <el-rate
+          v-model="comment.rate"
+          :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+          :max="5"
+          allow-half
+          show-text
+          :texts="['非常差', '失望至极', '一般般', '非常满意', 'surprise']"
+        ></el-rate>
+        <div style="margin: 10px 0">
+          <el-input
+            type="textarea"
+            placeholder="请输入评论"
+            v-model="comment.content"
+          ></el-input>
+          <div style="text-align: right; margin: 10px 0">
+            <el-button type="primary" @click="submit">提交</el-button>
+          </div>
+        </div>
+
+        <div style="margin: 20px 0">
+          <div
+            style="
+              margin: 10px 0;
+              font-size: 24px;
+              padding: 10px 0;
+              border-bottom: 1px solid #ccc;
+              text-align: left;
+            "
+          >
+            评论列表
+          </div>
+          <div style="margin: 20px 0; text-align: left" v-if="comments">
+            <div
+              style="padding: 10px 0; border-bottom: 1px solid #ccc"
+              v-for="item in comments"
+              :key="item.id"
+            >
+              <div style="display: flex">
+                <div style="width: 80px">
+                  <el-avatar
+                    :size="45"
+                    :src="item.user.avatar"
+                    v-if="item.user"
+                    @click="goToSpace(item.userId)"
+                    style="cursor: pointer;"
+                  ></el-avatar>
+                </div>
+                <div style="flex: 1">
+                  <div style="color: black">
+                    <b>{{ item.username }}：</b><span>{{ item.content }}</span>
+                  </div>
+
+                  <div style="width: 200px; margin-top: 15px">
+                    <i class="el-icon-time"></i
+                    ><span style="margin-left: 5px">{{ item.createTime }}</span>
+                  </div>
+                  <!--多级回复-->
+                  <div>
+                    <el-button
+                      type="text"
+                      @click="reply(item.id, item.username)"
+                      >回复</el-button
+                    >
+                  </div>
+
+                  <!--回复列表-->
+                  <div
+                    v-if="item.children.length"
+                    style="
+                      margin-left: 100px;
+                      background-color: aliceblue;
+                      padding: 10px;
+                      border-radius: 10px;
+                    "
+                  >
+                    <div v-for="sub in item.children" :key="sub.id">
+                      <div style="display: flex">
+                        <div>
+                          <el-avatar
+                            :size="30"
+                            :src="sub.user.avatar"
+                            v-if="sub.user"
+                            @click="goToSpace(sub.userId)"
+                            style="cursor: pointer;"
+                          ></el-avatar>
+                          <b
+                            style="cursor: pointer; margin-left: 10px;"
+                            @click="reply(sub.pid, sub.username)"
+                            >{{ sub.username }}</b
+                          >
+                          <span>
+                            回复
+                            <span style="color: cornflowerblue"
+                              >@{{ sub.target }}</span
+                            >
+                            <span style="color: #666; margin-left: 10px">{{
+                              sub.content
+                            }}</span>
+                          </span>
+                          <div style="width: 200px; margin-top: 15px">
+                            <i class="el-icon-time"></i
+                            ><span style="margin-left: 5px">{{
+                              item.createTime
+                            }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <el-dialog title="回复" v-model="dialogFormVisible" width="40%">
+          <el-form :model="replyComment">
+            <el-form-item label="内容" :label-width="100">
+              <el-input
+                v-model="replyComment.content"
+                autocomplete="off"
+                style="width: 80%"
+              ></el-input>
+            </el-form-item>
+          </el-form>
+          <div class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="saveReply">确 定</el-button>
+          </div>
+        </el-dialog>
       </div>
     </div>
   </div>
@@ -135,9 +273,15 @@
   
   <script setup>
 import { ElMessage } from "element-plus";
-import { getCurrentInstance, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
+import axios from "@/requset/http";
+import nProgress from "nprogress"; // 导入 nprogress
+import "@/components/nprogress"; // 导入样式，否则看不到效果
+import nprogress from "nprogress";
+
+
 
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
@@ -152,6 +296,11 @@ const user = ref({});
 const isLoggedIn = ref(false);
 const imageBase64 = ref("");
 
+const titles = ref([]);
+const preview = ref(null);
+
+const aid = route.params.aid;
+
 const article = ref({
   aid: null,
   title: null,
@@ -161,6 +310,44 @@ const article = ref({
   classify: null,
   tags: [],
   status: null,
+});
+
+onMounted(async () => {
+  nprogress.start();
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user.value = JSON.parse(localStorage.getItem("user"));
+    isLoggedIn.value = true;
+    imageBase64.value = user.value.avatar;
+  }
+
+  await loadArticle(aid);
+  load();
+  // await loadComment(aid);
+  await nextTick();
+  if (preview.value) {
+    const anchors = preview.value.$el.querySelectorAll("h1,h2,h3,h4,h5,h6");
+    const titleElements = Array.from(anchors).filter(
+      (title) => !!title.innerText.trim()
+    );
+
+    if (!titleElements.length) {
+      titles.value = [];
+      return;
+    }
+
+    const hTags = Array.from(
+      new Set(titleElements.map((title) => title.tagName))
+    ).sort();
+
+    titles.value = titleElements.map((el) => ({
+      title: el.innerText,
+      lineIndex: el.getAttribute("data-v-md-line"),
+      indent: hTags.indexOf(el.tagName),
+    }));
+  }
+
+  nprogress.done();
 });
 
 const loadArticle = async (aid) => {
@@ -178,28 +365,28 @@ const loadArticle = async (aid) => {
         ElMessage.error(res.data.msg);
       }
     } else {
-      console.error("加载文章失败");
+      ElMessage.error("加载文章失败");
     }
   } catch (err) {
     console.error("加载文章失败", err);
   }
 };
 
-onMounted(() => {
-  const aid = route.params.aid;
-  console.log(aid);
-  loadArticle(aid);
-  
-});
+const handleAnchorClick = (anchor) => {
+  const { lineIndex } = anchor;
+  const heading = preview.value.$el.querySelector(
+    `[data-v-md-line="${lineIndex}"]`
+  );
 
-onMounted(() => {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    user.value = JSON.parse(localStorage.getItem("user"));
-    isLoggedIn.value = true;
-    imageBase64.value = user.value.avatar;
+  if (heading) {
+    // 注意：如果你使用的是编辑组件的预览模式,则这里的方法名改为 previewScrollToTarget
+    preview.value.scrollToTarget({
+      target: heading,
+      scrollContainer: window,
+      top: 60,
+    });
   }
-});
+};
 
 const goToLogin = () => {
   router.push("/login"); // 跳转到登录页面
@@ -213,8 +400,8 @@ const goToInfo = () => {
   router.push("/home/info");
 };
 
-const goToSpace = () => {
-  router.push("/space");
+const goToSpace = (uid) => {
+  router.push(`/space/${uid}`);
 };
 
 const goToRelease = () => {
@@ -228,6 +415,115 @@ const goToAbout = () => {
 const signout = () => {
   store.commit("signout"); // 调用 Vuex 的 logout mutation
   location.reload();
+};
+
+const value = ref(0);
+const comments = ref([]);
+const pid = ref(0);
+const comment = ref({
+  rate: 0,
+  content: "",
+});
+const replyComment = ref({});
+const dialogFormVisible = ref(false);
+
+const load = async () => {
+  try {
+    const res = await axios.get("/comment/list?foreignId=" + aid);
+    if (res.status === 500) {
+      ElMessage.error("系统错误");
+      return;
+    }
+    console.log(res);
+    const data = res.data;
+    value.value = data.rate;
+    comments.value = data.comments;
+    // 遍历评论并加载用户头像
+    for (const comment of comments.value) {
+      comment.user = await getUser(comment.userId);
+      for (const children of comment.children) {
+        children.user = await getUser(children.userId);
+      }
+    }
+    console.log(comments.value);
+  } catch (error) {
+    console.error("加载评论失败", error);
+  }
+};
+
+const getUser = async (uid) => {
+  try {
+    const userRes = await $api.userApi.getuserbyuid({ uid: uid });
+    if (userRes.status === 200) {
+      if (userRes.data.code === 0) {
+        return userRes.data.data;
+      } else {
+        ElMessage.error(userRes.data.msg);
+      }
+    } else {
+      ElMessage.error("加载用户失败");
+    }
+  } catch (error) {
+    console.error("加载用户失败", error);
+  }
+};
+
+const reply = (pid, target) => {
+  // console.log(pid, target);
+  replyComment.value = {
+    pid: pid,
+    userId: user.value.uid,
+    username: user.value.username,
+    foreignId: aid,
+    target: target,
+  };
+  dialogFormVisible.value = true;
+  // console.log(dialogFormVisible.value);
+};
+
+const saveReply = async () => {
+  try {
+    const res = await axios({
+      url: "/comment/save",
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8",
+      },
+      data: JSON.stringify(replyComment.value),
+    });
+    if (res.status === 200) {
+      ElMessage.success("评论成功");
+      load();
+      replyComment.value = {};
+      dialogFormVisible.value = false;
+    }
+  } catch (error) {
+    console.error("保存回复失败", error);
+  }
+};
+
+const submit = async () => {
+  comment.value.userId = user.value.uid;
+  comment.value.username = user.value.username;
+  comment.value.foreignId = aid;
+
+  try {
+    const res = await axios({
+      url: "/comment/save",
+      method: "post",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8",
+      },
+      data: JSON.stringify(comment.value),
+    });
+    if (res.status === 200) {
+      ElMessage.success("评论成功");
+      load();
+      comment.value = { rate: 0, content: "" };
+    }
+  } catch (error) {
+    console.error("提交评论失败", error);
+  }
 };
 </script>
   
@@ -433,5 +729,29 @@ const signout = () => {
 }
 .dropdown-item {
   font-size: 18px;
+}
+a,
+p a code {
+  color: #3eaf7c;
+}
+
+.anchor-link {
+  text-decoration: none; /* 默认情况下不显示下划线 */
+}
+
+.anchor-link:hover {
+  text-decoration: underline; /* 鼠标悬停时显示下划线 */
+}
+
+.comment-container {
+  margin-top: 20px;
+}
+
+.comment-container .el-comment {
+  margin-bottom: 20px;
+}
+
+.comment-container .el-input {
+  margin-bottom: 10px;
 }
 </style>

@@ -21,7 +21,7 @@
                   shape="circle"
                   :size="50"
                   :src="imageBase64"
-                  @click="goToSpace"
+                  @click="goToSpace(user.uid)"
                   class="avatar"
                   style="cursor: pointer; "
                 ></el-avatar>
@@ -52,10 +52,14 @@
               </template>
             </el-dropdown>
           </li>
-          <!-- 添加占位元素 -->
-          <li class="spacer"></li>
-          <li class="spacer"></li>
-          <li class="spacer"></li>
+          <li>
+            <el-button
+              @click="goToDraft"
+              class="draftbox-button"
+              icon="Message"
+              >草稿箱</el-button
+            >
+          </li>
         </ul>
       </nav>
     </div>
@@ -106,7 +110,7 @@
         :disabled-menus="[]"
         @upload-image="handleUploadImage"
         @save="saveArticle"
-        
+        left-toolbar="undo redo clear | h bold italic strikethrough quote | ul ol table hr | link image code | save tip emoji todo-list"
       ></v-md-editor>
       <div class="button-container">
         <el-button class="release-button" @click="Release">发布</el-button>
@@ -199,9 +203,10 @@ const goToInfo = () => {
   router.push("/home/info");
 };
 
-const goToSpace = () => {
-  router.push("/space");
+const goToSpace = (uid) => {
+  router.push(`/space/${uid}`);
 };
+
 
 const goToAbout = () => {
   router.push("/home/about");
@@ -210,6 +215,10 @@ const goToAbout = () => {
 const signout = () => {
   store.commit("signout");
   location.reload();
+};
+
+const goToDraft = () => {
+  router.push("/draftbox");
 };
 
 const handleUploadImage = (event, insertImage, file) => {
@@ -443,6 +452,25 @@ const Draft = () => {
   gap: 20px; /* 按钮间距 */
   margin-top: 20px;
 }
+.draftbox-button {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  display: flex; /* 使用 flex 布局 */
+  align-items: center; /* 垂直居中对齐 */
+  justify-content: center; /* 水平居中对齐 */
+  padding: 20px 15px;
+  border-radius: 5px;
+  background-color: #ef632b;
+  border: none;
+  cursor: pointer;
+}
+
+.draftbox-button:hover {
+  background-color: #f97d1c;
+  color: white; /* 保持字体颜色不变 */
+}
+
 .release-button {
   color: white;
   text-decoration: none;

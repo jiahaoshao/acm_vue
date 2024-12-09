@@ -1,7 +1,7 @@
 <template>
   <div class="article-container">
     <div v-for="article in articles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
-      <div class="author-info" >
+      <div class="author-info" v-if="article.author">
         <el-avatar
           shape="circle"
           :size="30"
@@ -11,9 +11,11 @@
           style="cursor: pointer"
           ></el-avatar>
         <span class="author-name" @click="goToSpace(article.author.uid)" style="cursor: pointer">{{ article.author.username }}</span>
+        <span class="create-time">{{ article.formattedDate }}</span>
       </div>
       <h3 class="article-title">{{ article.title }}</h3>
-      <v-md-preview :text="article.content"></v-md-preview>
+      <!-- <div class="article-content">{{ article.summary }}</div> -->
+      <v-md-preview :text="article.summary"></v-md-preview>
     </div>
     <div v-if="loading" class="loading">加载中...</div>
     <div v-if="!hasMore" class="no-more">没有更多文章了</div>
@@ -21,12 +23,11 @@
 </template>
   
 <script setup>
-import MarkdownIt from "markdown-it";
-import markdownItAttrs from "markdown-it-attrs";
 import { onMounted, reactive, ref, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
-
+import { marked } from 'marked'; // 引入 marked 库
+import nProgress from 'nprogress'   // 导入 nprogress
+import '@/components/nprogress'   // 导入样式，否则看不到效果
 
 const router = useRouter();
 const globalProperties =
@@ -39,6 +40,7 @@ const hasMore = ref(true); // 是否还有更多数据
 const loading = ref(false); // 加载状态
 // 加载文章
 const loadArticles = async () => {
+  nProgress.start(); // 开始加载进度条
   if (loading.value || !hasMore.value) return;
   loading.value = true;
   try {
@@ -47,12 +49,16 @@ const loadArticles = async () => {
     const data = res.data;
     for (const article of data.data) {
       const authorRes = await $api.userApi.getuserbyuid({ uid: article.authorId });
-      console.log(authorRes)
+       // console.log(authorRes)
       if (authorRes.status === 200) {
         article.author = authorRes.data.data;
       } else {
         article.author = { avatar: 'https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png', username: '未知作者' }; // 默认作者信息
       }
+      // 使用 extractSummary 函数生成摘要
+      article.summary = extractSummary(article.content);
+        // 格式化日期
+      article.formattedDate = formatDate(article.createTime);
     }
     articles.value.push(...data.data);
     hasMore.value = data.hasMore;
@@ -62,6 +68,51 @@ const loadArticles = async () => {
     loading.value = false;
     page.value++;
   }
+  nProgress.done(); // 结束加载进度条
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 提取摘要的函数
+const extractSummary = (content) => {
+  // 定义正则表达式，处理 options 可选情况
+  const imageRegex = /!\[(.*?)\]\((.*?)\)(\{\{\{(.*?)\}\}\})?/g;
+
+  // 替换图片语法
+  const modifiedContent = content.replace(imageRegex, (match, alt, url, optionsGroup, options) => {
+    return `![${alt}](${url})`;
+  });
+
+  // 使用 marked 解析修改后的内容
+  const htmlContent = marked.parse(modifiedContent);
+
+  const div = document.createElement('div');
+  div.innerHTML = htmlContent;
+
+  // 提取文字内容
+  let text = div.innerText || div.textContent || '';
+  text = text.replace(imageRegex, ' ').trim();
+  const summaryText = text.length > 100 ? text.substring(0, 100) + '...' : text;
+
+  // 提取前 3 张图片
+  const imgElements = div.querySelectorAll('img');
+  const images = [];
+  for (let i = 0; i < Math.min(imgElements.length, 3); i++) {
+    if(imgElements[i].width > 300) {
+      imgElements[i].style.width = '300px';
+      imgElements[i].style.height = 'auto';
+    }
+    images.push(imgElements[i].outerHTML);
+  }
+  const imagesHtml = images.join('');
+
+  return summaryText + imagesHtml;
 };
 
 const goToSpace = (uid) => {
@@ -173,6 +224,12 @@ body {
 .author-name {
   font-weight: bold;
   font-size: 16px;
+}
+
+.create-time {
+  margin-left: auto; /* 将日期放到右侧 */
+  font-size: 14px;
+  color: #888;
 }
 
 .loading, .no-more {

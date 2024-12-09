@@ -1,4 +1,7 @@
 import { createWebHashHistory, createRouter } from 'vue-router'
+import nProgress from 'nprogress'   // 导入 nprogress
+import '@/components/nprogress'   // 导入样式，否则看不到效果
+
 import Login from '../views/LoginView.vue'
 import Register from '../views/RegisterView.vue'
 import ResetPsw from '../views/ResetPswView.vue'
@@ -19,6 +22,8 @@ import Release from '@/views/ReleaseView.vue'
 import Space from '@/views/SpaceView.vue'
 import PreView from '@/views/PreView.vue'
 import Article from '@/views/Article.vue'
+import Draftbox from '@/views/Draftbox.vue'
+import Test1 from '@/views/Test1.vue'
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/register', component: Register },
@@ -43,9 +48,11 @@ const routes = [
   },
   { path: '/test', component: Test },
   { path: '/release', component: Release },
-  { path: '/space/:uid', component: Space }, // 修改此行，添加动态参数 :uid
+  { path: '/space/:uid', component: Space, name: 'space' }, // 修改此行，添加动态参数 :uid
   { path: '/preview', component: PreView },
-  { path: '/article/:aid', component: Article } // 修改此行，添加动态参数 :aid
+  { path: '/article/:aid', component: Article, name: 'article' }, // 修改此行，添加动态参数 :aid
+  { path: '/draftbox', component: Draftbox },
+  { path: '/test1', component: Test1 }
 ];
 
 const router = createRouter({
@@ -55,10 +62,13 @@ const router = createRouter({
 
 //路由全局前置守卫
 router.beforeEach((to, from, next) => {
-  const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2'];
-  if (whiteList.includes(to.path)) {
+  const whiteList = ['/register', '/login', '/', '/resetpsw', '/home', '/home/home2', 'article', 'space'];
+  nProgress.start()   // 开启进度条
+  if (whiteList.includes(to.path) || whiteList.includes(to.name)) {
+    console.log("白名单路由:" + to.path);
     next();
   } else {
+    console.log("非白名单路由:" + to.path);
     let userToken = localStorage.getItem('token');
     console.log("Token为:" + userToken);
     if (userToken == null || userToken == '') {
@@ -68,6 +78,7 @@ router.beforeEach((to, from, next) => {
       next();
     }
   }
+  nProgress.done()   // 关闭进度条
 });
 
 

@@ -18,6 +18,25 @@ import '@kangc/v-md-editor/lib/theme/style/github.css';
 import vuepressTheme from '@kangc/v-md-editor/lib/theme/vuepress.js';
 import '@kangc/v-md-editor/lib/theme/style/vuepress.css';
 
+import createEmojiPlugin from '@kangc/v-md-editor/lib/plugins/emoji/index';
+import '@kangc/v-md-editor/lib/plugins/emoji/emoji.css';
+
+import createLineNumbertPlugin from '@kangc/v-md-editor/lib/plugins/line-number/index';
+
+import createTodoListPlugin from '@kangc/v-md-editor/lib/plugins/todo-list/index';
+import '@kangc/v-md-editor/lib/plugins/todo-list/todo-list.css';
+
+import createHighlightLinesPlugin from '@kangc/v-md-editor/lib/plugins/highlight-lines/index';
+import '@kangc/v-md-editor/lib/plugins/highlight-lines/highlight-lines.css';
+
+import createCopyCodePlugin from '@kangc/v-md-editor/lib/plugins/copy-code/index';
+import '@kangc/v-md-editor/lib/plugins/copy-code/copy-code.css';
+
+import createAlignPlugin from '@kangc/v-md-editor/lib/plugins/align';
+
+import UndrawUi from 'undraw-ui'
+import 'undraw-ui/dist/style.css'
+
 // 引入 markdown-it
 import MarkdownIt from 'markdown-it';
 // 引入 markdown-it-attrs 插件
@@ -36,7 +55,13 @@ VMdEditor.use(vuepressTheme,{
     md.set({ html: true });
     md.use(markdownItAttrs);
   }
-});
+})
+.use(createEmojiPlugin())
+.use(createLineNumbertPlugin())
+.use(createTodoListPlugin())
+.use(createHighlightLinesPlugin())
+.use(createCopyCodePlugin())
+.use(createAlignPlugin());
 
 VMdPreview.use(vuepressTheme,{
   Prism,
@@ -44,7 +69,13 @@ VMdPreview.use(vuepressTheme,{
     md.set({ html: true });
     md.use(markdownItAttrs);
   }
-});
+})
+.use(createEmojiPlugin())
+.use(createLineNumbertPlugin())
+.use(createTodoListPlugin())
+.use(createHighlightLinesPlugin())
+.use(createCopyCodePlugin())
+.use(createAlignPlugin());
 
 const app = createApp(App)
 
@@ -63,7 +94,12 @@ axios.defaults.withCredentials = true
 axios.defaults.timeout = 10000
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8'
 
-app.use(store).use(router).use(ElementPlus).mount('#app')
+app
+.use(store)
+.use(router)
+.use(ElementPlus)
+.use(UndrawUi)
+.mount('#app')
 
 const debounce = (fn, delay) => {
   let timer

@@ -63,7 +63,7 @@ const rules = {
 async function handleSubmit() {
   try {
     const response = await $api.signApi.resetPassword({
-      userAccount: user.username,
+      userAccount: user.userAccount,
       email: user.email,
       password: encryptedPwd(form.newPassword),
     });

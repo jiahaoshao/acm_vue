@@ -4,16 +4,15 @@
     <div class="topbar">
       <nav>
         <ul class="left-nav">
-          <li><router-link to="/ai/assistai">聊天助手</router-link></li>
-          <li><router-link to="/ai/musicai">音乐助手</router-link></li>
-          <li><router-link to="/ai/artai">绘画助手</router-link></li>
+          <li><router-link to="/home/home2">首页</router-link></li>
+          <li><a href="#/ai" target="'_blank'">AI中心</a></li>
         </ul>
 
         <!-- 右侧导航栏 -->
         <ul class="right-nav">
-
-
           <!-- 判断用户是否登录 -->
+
+          <!-- 只有登录后才显示个人信息 -->
           <li>
             <el-dropdown
               trigger="hover"
@@ -86,10 +85,14 @@
               </template>
             </el-dropdown>
           </li>
-          <!-- 添加占位元素 -->
-          <li class="spacer"></li>
-          <li class="spacer"></li>
-          <li class="spacer"></li>
+          <li>
+            <el-button
+              @click="goToRelease"
+              class="release-button"
+              icon="CirclePlusFilled"
+              >发布</el-button
+            >
+          </li>
         </ul>
       </nav>
     </div>
@@ -110,9 +113,11 @@ import myJson from "@/../public/static/config.json";
 
 const { image_url } = myJson;
 
+
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api;
+
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
@@ -120,38 +125,16 @@ const store = useStore();
 const user = ref({});
 //const image = ref("");
 const isLoggedIn = ref(false);
-const imageBase64 = ref("");
+const imageBase64 = ref("https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png");
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(localStorage.getItem("user"));
-    //image.value = image_url + user.value.avatar;
-    //console.log(image.value);
     isLoggedIn.value = true;
     imageBase64.value = user.value.avatar;
+    //console.log(user.value)
   }
-  // const storedAvatar = localStorage.getItem("avatar");
-  // if (storedAvatar) {
-  //   imageBase64.value = storedAvatar;
-  // } else {
-  //   getAvatar();
-  // }
-  // const getAvatar = () => {
-  // $api.userApi.getavatarbase64({
-  //   fileUrl: user.value.avatar,
-  // })
-  // .then((res) => {
-  //   console.log(res);
-  //   if(res.status === 200){
-  //     imageBase64.value = res.data;
-  //     //console.log(imageBase64.value);
-  //     store.commit("setAvatar", imageBase64.value);
-  //   } else {
-  //     Element.Message.error("头像获取失败");
-  //   }
-  // });
-  // }
 });
 
 const goToLogin = () => {
@@ -170,6 +153,9 @@ const goToSpace = (uid) => {
   router.push(`/space/${uid}`);
 };
 
+const goToRelease = () => {
+  router.push("/release");
+};
 
 const goToAbout = () => {
   router.push("/home/about");
@@ -265,6 +251,25 @@ const signout = () => {
   transform: scale(1.4); /* 在下拉框悬停时，头像保持放大 */
 }
 
+.release-button {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  display: flex; /* 使用 flex 布局 */
+  align-items: center; /* 垂直居中对齐 */
+  justify-content: center; /* 水平居中对齐 */
+  padding: 20px 15px;
+  border-radius: 5px;
+  background-color: #ef632b;
+  border: none;
+  cursor: pointer;
+}
+
+.release-button:hover {
+  background-color: #f97d1c;
+  color: white; /* 保持字体颜色不变 */
+}
+
 /* 定义文字跃动的关键帧 */
 @keyframes text-jump {
   0% {
@@ -335,10 +340,5 @@ const signout = () => {
 }
 .dropdown-item{
   font-size: 18px;
-}
-
-/* 新增占位元素样式 */
-.spacer {
-  flex-grow: 1;
 }
 </style>

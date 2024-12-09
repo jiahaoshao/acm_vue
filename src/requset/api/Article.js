@@ -1,33 +1,14 @@
 import axios from '@/requset/http';
 const articleApi = {
-  getArticle(page, limit) {
+  getArticle(page, limit, status) {
     return axios.get('/articles/getarticles', {
       params: {
         page: page,
-        limit: limit
+        limit: limit,
+        status: status
       }
     });
   },
-  // uploadArticleImages(params){
-  //   return axios({
-  //       url: "upload/article_images",
-  //       method: "post",
-  //       data: params,
-  //       headers:{
-  //           'Content-Type': 'multipart/form-data',
-  //       }
-  //   })
-  // },
-  // uploadArticleImages(params){
-  //   return axios({
-  //       url: "upload/uploadImg",
-  //       method: "post",
-  //       data: params,
-  //       headers:{
-  //           'Content-Type': 'multipart/form-data',
-  //       }
-  //   })
-  // },
   uploadArticleImages(params){
     return axios({
         url: "github/upload",
@@ -43,7 +24,14 @@ const articleApi = {
   },
   getArticleByAid(params){
     return axios.get('/articles/getarticlebyaid', {params:params});
-  }
+  },
+  getCommentByParentId(params){
+    return axios.get('/articles/getcommentbyparentid', {params:params});
+  },
+  addComment(params){
+    return axios.post('/articles/addcomment', params);
+  },
+  
 };
 
 export default articleApi;
