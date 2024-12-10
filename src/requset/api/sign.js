@@ -19,9 +19,13 @@ const signApi = {
   signout(params){
     return axios.get('/sign/signout',{params: params});
   },
-  //获取验证码
+  //获取邮箱验证码
   getEmailVerifyCode(params){
     return axios.get('/sign/getemailverifycode', {params: params});
+  },
+  //获取手机验证码
+  getPhoneVerifyCode(params){
+    return axios.get('/sign/getphoneverifycode', {params: params});
   },
   //获取公钥
   getKey(){

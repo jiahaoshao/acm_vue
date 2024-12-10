@@ -3,7 +3,7 @@
         <h1 class="modify-password-title">修改密码</h1>
     <el-form :model="form" :rules="rules" ref="formRef" label-width="120px">
     <el-form-item label="当前密码" prop="currentPassword">
-        <el-input v-model="form.currentPassword" type="password" placeholder="请输入当前密码" />
+        <el-input v-model="form.currentPassword" type="password" placeholder="请输入当前密码" style="width: 300px;"/>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSubmit">确认</el-button>
@@ -42,17 +42,18 @@ const user = reactive( storedUser ? JSON.parse(storedUser) : null);
             }
         })
     }
-    const change=async()=>{
+    const change = async()=>{
        const response=await $api.signApi.signin({
-      userAccount: user.username,
-      password: encryptedPwd(form.currentPassword)
-    });
+        userAccount: user.userAccount,
+        password: encryptedPwd(form.currentPassword)
+      });
+      console.log(response)
         try {
             if(response.data.code===200){
                 router.push('/home/confirmPassword')
             }
             else{
-                ElMessage.error(response.data.msg)
+                ElMessage.error(response.data.message)
             }
         } catch (error) {
             ElMessage.error("修改失败")

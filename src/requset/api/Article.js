@@ -1,16 +1,17 @@
 import axios from '@/requset/http';
 const articleApi = {
-  getArticle(page, limit) {
+  getArticle(page, limit, status) {
     return axios.get('/articles/getarticles', {
       params: {
         page: page,
-        limit: limit
+        limit: limit,
+        status: status
       }
     });
   },
   uploadArticleImages(params){
     return axios({
-        url: "upload/article_images",
+        url: "github/upload",
         method: "post",
         data: params,
         headers:{
@@ -20,29 +21,17 @@ const articleApi = {
   },
   updateArticle(params){
     return axios.post('/articles/update_article', params);
-    },
-    getArticleById(articleId){
-        return axios.post('',{
-            params:{
-                articleId:articleId
-            }
-        })
   },
-  getAuthorInfo(uid){
-    return axios.get('/user/finduserbyuid',{
-      params:{
-        uid:uid
-      }
-    })
+  getArticleByAid(params){
+    return axios.get('/articles/getarticlebyaid', {params:params});
   },
-  getArticleById(id){
-    return axios.get('/articles/getArticleById',
-    {
-      params:{
-        id:id
-      }
-    })
-  }
+  getCommentByParentId(params){
+    return axios.get('/articles/getcommentbyparentid', {params:params});
+  },
+  addComment(params){
+    return axios.post('/articles/addcomment', params);
+  },
+  
 };
 
 export default articleApi;

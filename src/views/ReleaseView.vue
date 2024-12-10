@@ -14,14 +14,14 @@
             <el-dropdown
               trigger="hover"
               class="el-tooltip__trigger"
-              style="cursor: pointer; margin-right: 120px;"
+              style="cursor: pointer"
             >
               <span>
                 <el-avatar
                   shape="circle"
                   :size="50"
-                  :src="image"
-                  @click="goToSpace"
+                  :src="imageBase64"
+                  @click="goToSpace(user.uid)"
                   class="avatar"
                   style="cursor: pointer; "
                 ></el-avatar>
@@ -51,6 +51,14 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
+          </li>
+          <li>
+            <el-button
+              @click="goToDraft"
+              class="draftbox-button"
+              icon="Message"
+              >草稿箱</el-button
+            >
           </li>
         </ul>
       </nav>
@@ -102,11 +110,13 @@
         :disabled-menus="[]"
         @upload-image="handleUploadImage"
         @save="saveArticle"
+        left-toolbar="undo redo clear | h bold italic strikethrough quote | ul ol table hr | link image code | save tip emoji todo-list"
       ></v-md-editor>
       <div class="button-container">
         <el-button class="release-button" @click="Release">发布</el-button>
         <el-button class="draft-button" @click="Draft">存草稿</el-button>
       </div>
+      <!-- <img referrerpolicy="no-referrer" src="https://gitee.com/sauerkraut001/picture-bed/raw/master/uploadimg/2024-12/1733306903017_fce2a147-bd2e-4404-ab9d-1d06e2ebb1e6.png" alt="avatar"/> -->
     </div>
   </div>
 </template>
@@ -114,9 +124,9 @@
 <script setup>
 import { getCurrentInstance, onMounted, ref } from "vue";
 import myJson from "@/../public/static/config.json";
-import { ElMessage } from "element-plus";
+import { ElLoading, ElMessage } from "element-plus";
 import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
 
 const router = useRouter();
 const store = useStore();
@@ -129,12 +139,15 @@ let article = ref({});
 const user = ref({});
 const newTag = ref(""); // 用于存储新标签的输入值
 const image = ref("");
+const imageBase64 = ref("");
+const shouldConfirm = ref(true); // 添加标志位，初始值为 true
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(storedUser);
-    image.value = image_url + user.value.avatar;
+    //image.value = image_url + user.value.avatar;
+    imageBase64.value = user.value.avatar;
   }
 
   //localStorage.removeItem("article");
@@ -156,15 +169,44 @@ onMounted(() => {
   console.log(article.value);
 
   store.commit("setArticle", article.value);
+
+  const storedAvatar = localStorage.getItem("avatar");
+  if (storedAvatar) {
+    imageBase64.value = storedAvatar;
+  }
+
+  // 添加页面关闭提示
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+const handleBeforeUnload = (event) => {
+    event.preventDefault();
+    event.returnValue = '';
+};
+
+onBeforeRouteLeave((to, from, next) => {
+  if (shouldConfirm.value) {
+    const answer = window.confirm('您有未保存的更改，是否要保存？');
+    if (answer) {
+      // 调用保存函数
+      saveArticle();
+      next(); // 继续导航
+    } else {
+      next(false); // 取消导航
+    }
+  } else {
+    next(); // 继续导航
+  }
 });
 
 const goToInfo = () => {
   router.push("/home/info");
 };
 
-const goToSpace = () => {
-  router.push("/space");
+const goToSpace = (uid) => {
+  router.push(`/space/${uid}`);
 };
+
 
 const goToAbout = () => {
   router.push("/home/about");
@@ -175,27 +217,45 @@ const signout = () => {
   location.reload();
 };
 
-const handleUploadImage = (event, insertImage, files) => {
-  const formData = new FormData();
-  for (let i = 0; i < files.length; i++) {
-    formData.append("files", files[i]);
-    $api.articleApi
-      .uploadArticleImages(formData)
-      .then((res) => {
-        //console.log(res);
-        const imageUrl = res.data.data; // 假设返回的数据包含图片URL
-        console.log(files[i]);
-        insertImage({
-          url: image_url + imageUrl,
-          desc: files[i].name,
-          width: "auto",
-          height: "auto",
-        });
-      })
-      .catch((error) => {
-        console.error("上传图片失败", error);
+const goToDraft = () => {
+  router.push("/draftbox");
+};
+
+const handleUploadImage = (event, insertImage, file) => {
+  // 启动加载动画
+  const loadingInstance = ElLoading.service({
+    lock: true,
+    text: '正在上传图片...',
+    background: 'rgba(0, 0, 0, 0.7)',
+  });
+
+  $api.articleApi
+    .uploadArticleImages({
+      file: file[0],
+      filepath: "images/article/",
+    })
+    .then((res) => {
+      // 关闭加载动画
+      loadingInstance.close();
+
+      if (res.data.code !== 0) {
+        ElMessage.error(res.data.message);
+        return;
+      }
+      const imageUrl = res.data.data; // 假设返回的数据包含图片URL
+      insertImage({
+        url: imageUrl,
+        desc: file[0].name,
+        width: "300",
+        height: "auto",
       });
-  }
+    })
+    .catch((error) => {
+      // 出现错误时也需要关闭加载动画
+      loadingInstance.close();
+      //console.error("上传图片失败", error);
+      ElMessage.error("上传图片失败");
+    });
 };
 
 // 处理标签输入
@@ -238,8 +298,27 @@ const getArticle = () => {
 };
 
 const Release = () => {
+  shouldConfirm.value = false; // 在点击发布按钮时，设置标志位为 false
   store.commit("setArticle", article.value);
   getArticle();
+
+  if(!article.value.title) {
+    ElMessage.error("标题不能为空");
+    return;
+  }
+  if(!article.value.classify) {
+    ElMessage.error("请选择分区");
+    return;
+  }
+  if(article.value.tags.length === 0) {
+    ElMessage.error("请添加标签");
+    return;
+  }
+  if(!article.value.content) {
+    ElMessage.error("正文内容不能为空");
+    return;
+  }
+
   $api.articleApi
     .updateArticle({
       aid: article.value.aid,
@@ -255,10 +334,12 @@ const Release = () => {
       console.log(res);
       localStorage.removeItem("article");
       ElMessage.success("发布成功");
+      router.back();
     });
 };
 
 const Draft = () => {
+  shouldConfirm.value = false; // 在点击发布按钮时，设置标志位为 false
   saveArticle();
   getArticle();
   $api.articleApi
@@ -276,6 +357,7 @@ const Draft = () => {
       console.log(res);
       localStorage.removeItem("article");
       ElMessage.success("保存成功");
+      router.back();
     });
 };
 </script>
@@ -370,6 +452,25 @@ const Draft = () => {
   gap: 20px; /* 按钮间距 */
   margin-top: 20px;
 }
+.draftbox-button {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  display: flex; /* 使用 flex 布局 */
+  align-items: center; /* 垂直居中对齐 */
+  justify-content: center; /* 水平居中对齐 */
+  padding: 20px 15px;
+  border-radius: 5px;
+  background-color: #ef632b;
+  border: none;
+  cursor: pointer;
+}
+
+.draftbox-button:hover {
+  background-color: #f97d1c;
+  color: white; /* 保持字体颜色不变 */
+}
+
 .release-button {
   color: white;
   text-decoration: none;
@@ -511,5 +612,10 @@ const Draft = () => {
 .tag-last-wrp {
   margin-top: 10px;
   color: #888;
+}
+
+/* 新增占位元素样式 */
+.spacer {
+  flex-grow: 1;
 }
 </style>

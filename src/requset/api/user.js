@@ -1,21 +1,27 @@
 import axios from '@/requset/http';
 
 const userApi = {
-    uploadavatar(params){
+    updateavatar(params){
         return axios({
-            url: "upload/avatar",
+            url: "user/updateavatar",
             method: "post",
             data: params,
             headers:{
                 'Content-Type': 'multipart/form-data',
             }
         })
-    },
+      },
     getavatar(params){
         return axios.get('download/avatar', {params : params}, {resposeType: "blob"});
     },
     updateuser(params){
         return axios.get('user/update', {params : params});
+    },
+    getavatarbase64(params){
+        return axios.get('github/download_base64', {params : params});
+    },
+    getuserbyuid(params){
+        return axios.get('user/finduserbyuid', {params : params});
     }
 }
 
