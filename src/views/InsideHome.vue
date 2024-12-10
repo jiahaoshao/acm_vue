@@ -4,8 +4,8 @@
       <el-input
       v-model="searchQuery"
       placeholder="输入搜索内容"
-      @input="searchArticles"
       />
+      <el-button @click="searchArticles">搜索</el-button>
     </div>
     <div v-for="article in filteredArticles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
       <div class="author-info" v-if="article.author">
@@ -49,22 +49,41 @@ const loading = ref(false); // 加载状态
 const searchQuery=ref("")
 const filteredArticles=ref([])
 //搜索
-const searchArticles=()=>{
-  const query=searchQuery.value.toLowerCase();
-  if(!query){
+const searchArticles = async () => {
+  const query = searchQuery.value.toLowerCase();
+  if (!query) {
     filteredArticles.value = [...articles.value];
+  } else {
+    try {
+      const res = await $api.articleApi.search({ keyword: query });
+      // 在这里为每篇文章添加 summary 和作者信息
+      filteredArticles.value = res.data.map(async (article) => {
+        // 添加摘要
+        article.summary = extractSummary(article.content);
+        // 格式化日期
+        article.formattedDate = formatDate(article.createTime);
+        
+        // 获取作者信息
+        const authorRes = await $api.userApi.getuserbyuid({ uid: article.authorId });
+        if (authorRes.status === 200) {
+          article.author = authorRes.data.data;
+        } else {
+          // 默认作者信息
+          article.author = { avatar: 'https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png', username: '未知作者' };
+        }
+
+        return article;
+      });
+
+      filteredArticles.value = await Promise.all(filteredArticles.value);
+
+    } catch (error) {
+      console.log(error);
+    }
   }
-  else{
-    filteredArticles.value=articles.value.filter((article)=>{
-      const lowerCaseTitle = (article.title || '').toLowerCase();
-      const lowerCaseContent = (article.content || '').toLowerCase();
-      return lowerCaseTitle.includes(query) || lowerCaseContent.includes(query);
-    })
-  }
-  // console.log(filteredArticles.value)
-  // console.log(articles.value)
-  // console.log(query)
-}
+};
+
+
 // 加载文章
 const loadArticles = async () => {
   nProgress.start(); // 开始加载进度条

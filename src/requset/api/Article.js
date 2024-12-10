@@ -1,4 +1,5 @@
 import axios from '@/requset/http';
+
 const articleApi = {
   getArticle(page, limit, status) {
     return axios.get('/articles/getarticles', {
@@ -31,7 +32,9 @@ const articleApi = {
   addComment(params){
     return axios.post('/articles/addcomment', params);
   },
-  
+  search(params){
+    return axios.get('/articles/search',{params:params})
+  }
 };
 
 export default articleApi;
