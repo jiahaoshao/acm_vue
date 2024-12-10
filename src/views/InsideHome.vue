@@ -1,6 +1,13 @@
 <template>
   <div class="article-container">
-    <div v-for="article in articles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
+    <div class="search-bar">
+      <el-input
+      v-model="searchQuery"
+      placeholder="输入搜索内容"
+      @input="searchArticles"
+      />
+    </div>
+    <div v-for="article in filteredArticles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
       <div class="author-info" v-if="article.author">
         <el-avatar
           shape="circle"
@@ -29,6 +36,7 @@ import { marked } from 'marked'; // 引入 marked 库
 import nProgress from 'nprogress'   // 导入 nprogress
 import '@/components/nprogress'   // 导入样式，否则看不到效果
 
+
 const router = useRouter();
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
@@ -38,6 +46,25 @@ const page = ref(1); // 当前页数
 const limit = ref(10); // 每页文章数量
 const hasMore = ref(true); // 是否还有更多数据
 const loading = ref(false); // 加载状态
+const searchQuery=ref("")
+const filteredArticles=ref([])
+//搜索
+const searchArticles=()=>{
+  const query=searchQuery.value.toLowerCase();
+  if(!query){
+    filteredArticles.value = [...articles.value];
+  }
+  else{
+    filteredArticles.value=articles.value.filter((article)=>{
+      const lowerCaseTitle = (article.title || '').toLowerCase();
+      const lowerCaseContent = (article.content || '').toLowerCase();
+      return lowerCaseTitle.includes(query) || lowerCaseContent.includes(query);
+    })
+  }
+  // console.log(filteredArticles.value)
+  // console.log(articles.value)
+  // console.log(query)
+}
 // 加载文章
 const loadArticles = async () => {
   nProgress.start(); // 开始加载进度条
@@ -60,6 +87,8 @@ const loadArticles = async () => {
       article.formattedDate = formatDate(article.createTime);
     }
     articles.value.push(...data.data);
+    filteredArticles.value = [...articles.value]
+    searchArticles();
     hasMore.value = data.hasMore;
   } catch (err) {
     console.error("加载失败", err);
@@ -129,10 +158,6 @@ const handleScroll = () => {
   const scrollTop = document.documentElement.scrollTop; // 滚动的高度
   const clientHeight = document.documentElement.clientHeight; // 可见区域高度
   if (scrollTop + clientHeight >= scrollHeight - 10) loadArticles();
-};
-    //点击跳转
-    const goToArticle = (articleId) => {
-      router.push({ name: 'ArticleDetail', params: { articleId } });
 };
 onMounted(() => {
   loadArticles();
@@ -252,6 +277,11 @@ body {
   text-align: center;
   font-size: 16px;
   color: #888;
+}
+.search-bar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 </style>
   
