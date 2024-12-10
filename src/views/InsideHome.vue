@@ -1,12 +1,12 @@
 <template>
   <div class="article-container">
-    <div class="search-bar">
+    <!-- <div class="search-bar">
       <el-input
       v-model="searchQuery"
       placeholder="输入搜索内容"
       />
       <el-button @click="searchArticles">搜索</el-button>
-    </div>
+    </div> -->
     <div v-for="article in filteredArticles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
       <div class="author-info" v-if="article.author">
         <el-avatar

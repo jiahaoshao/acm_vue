@@ -24,6 +24,7 @@ import PreView from '@/views/PreView.vue'
 import Article from '@/views/Article.vue'
 import Draftbox from '@/views/Draftbox.vue'
 import Test1 from '@/views/Test1.vue'
+import Search from '@/views/Search.vue'
 const routes = [
   { path: '/', redirect: '/home' },
   { path: '/register', component: Register },
@@ -36,14 +37,16 @@ const routes = [
       { path: 'about', component: About },
       { path: 'changeInfo', component: ChangeInfo },
       { path: 'changePassword', component: ChangePassword },
-      { path: 'confirmPassword', component: ConfirmPassword }
+      { path: 'confirmPassword', component: ConfirmPassword },
+      { path: 'search', component: Search}
     ]
   },
   { path: '/ai', component: Ai, children: [
       { path: '', redirect: '/ai/assistai' },
       { path: 'musicAi', component: musicAi },
       { path: 'artAi', component: artAi },
-      { path: 'assistai', component: AssistAi }
+      { path: 'assistai', component: AssistAi },  
+
     ]
   },
   { path: '/test', component: Test },

@@ -8,7 +8,21 @@
           <li><a href="#/ai" target="'_blank'">AI中心</a></li>
         </ul>
 
-        
+        <ul class="search-bar">
+          <div class="search-bar">
+          <el-input
+            v-model="searchQuery"
+            placeholder="输入搜索内容"
+            class="search-input"
+            @keyup.enter="handleSearch"
+          >
+            <template #append>
+              <el-button icon="Search" @click="handleSearch">搜索</el-button>
+            </template>
+          </el-input>
+        </div>
+        </ul>
+
         <!-- 右侧导航栏 -->
         <ul class="right-nav">
           <!-- 判断用户是否登录 -->
@@ -29,8 +43,7 @@
                   class="avatar"
                   style="cursor: pointer"
                   v-if="isLoggedIn"
-                  ></el-avatar
-                >
+                ></el-avatar>
                 <el-avatar
                   shape="circle"
                   :size="50"
@@ -47,13 +60,23 @@
                   class="custom-dropdown-menu"
                   v-if="isLoggedIn"
                 >
-                  <el-dropdown-item icon="UserFilled" @click="goToInfo" class="dropdown-item"
+                  <el-dropdown-item
+                    icon="UserFilled"
+                    @click="goToInfo"
+                    class="dropdown-item"
                     >个人中心</el-dropdown-item
                   >
-                  <el-dropdown-item icon="Reading" @click="goToAbout" class="dropdown-item"
+                  <el-dropdown-item
+                    icon="Reading"
+                    @click="goToAbout"
+                    class="dropdown-item"
                     >关于我们</el-dropdown-item
                   >
-                  <el-dropdown-item icon="SwitchButton" @click="signout" class="dropdown-item" divided
+                  <el-dropdown-item
+                    icon="SwitchButton"
+                    @click="signout"
+                    class="dropdown-item"
+                    divided
                     >退出登录</el-dropdown-item
                   >
                 </el-dropdown-menu>
@@ -111,9 +134,9 @@ import { getCurrentInstance, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import myJson from "@/../public/static/config.json";
+import { ElMessage } from "element-plus";
 
 const { image_url } = myJson;
-
 
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
@@ -123,10 +146,13 @@ const router = useRouter();
 const route = useRoute();
 const store = useStore();
 
+const searchQuery = ref("")
 const user = ref({});
 //const image = ref("");
 const isLoggedIn = ref(false);
-const imageBase64 = ref("https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png");
+const imageBase64 = ref(
+  "https://jsd.cdn.zzko.cn/gh/fangyi002/picture_bed/images/avatar/default.png"
+);
 
 onMounted(() => {
   const storedUser = localStorage.getItem("user");
@@ -140,9 +166,12 @@ onMounted(() => {
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    router.push({ path: '/search', query: { q: searchQuery.value } });
+    router.push({ path: "/home/search", query: { q: searchQuery.value } })
+    .then(() => {
+      window.location.reload();
+    });
   } else {
-    ElMessage.warning('请输入搜索内容');
+    ElMessage.warning("请输入搜索内容");
   }
 };
 
@@ -213,7 +242,6 @@ const signout = () => {
   display: flex; /* 使用 flex 布局 */
   align-items: center; /* 垂直居中 */
 }
-
 
 .search-input {
   flex: 1;
@@ -354,7 +382,28 @@ const signout = () => {
 .signup-link:hover {
   text-decoration: underline; /* 悬停时显示下划线 */
 }
-.dropdown-item{
+.dropdown-item {
   font-size: 18px;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  max-width: 400px;
+  width: 100%;
+}
+
+.search-input .el-input__inner {
+  border-radius: 20px;
+  padding: 10px 20px;
+}
+
+.search-input .el-button {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 </style>

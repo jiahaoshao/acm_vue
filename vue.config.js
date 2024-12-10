@@ -5,11 +5,11 @@ module.exports = defineConfig({
   devServer: {
     open: true, //启动项目是否自动弹出浏览器
     port: 8080, //开发服务器的端口号
-    host: 'localhost',  //开发服务器的主机名
+    host: '127.0.0.1',  //开发服务器的主机名
     https: true, //是否开启https协议
     proxy: {
       '/api': {
-        target: 'https://localhost:8181/', // 目标服务器地址,也就是后端服务地址
+        target: 'https://127.0.0.1:8181/', // 目标服务器地址,也就是后端服务地址
         changeOrigin: true, // 是否改变源地址
         pathRewrite: {
           '^/api': '' // 重写路径

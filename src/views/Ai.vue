@@ -5,7 +5,7 @@
       <nav>
         <ul class="left-nav">
           <li><router-link to="/ai/assistai">聊天助手</router-link></li>
-          <li><router-link to="/ai/musicai">音乐助手</router-link></li>
+          <!-- <li><router-link to="/ai/musicai">音乐助手</router-link></li> -->
           <li><router-link to="/ai/artai">绘画助手</router-link></li>
         </ul>
 
