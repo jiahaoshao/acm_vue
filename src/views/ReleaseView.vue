@@ -127,7 +127,7 @@ import myJson from "@/../public/static/config.json";
 import { ElLoading, ElMessage } from "element-plus";
 import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
-
+const aid = ref();
 const router = useRouter();
 const store = useStore();
 const { image_url } = myJson;
@@ -155,17 +155,30 @@ onMounted(() => {
   if(storedArticle) {
     article.value = JSON.parse(storedArticle);
   } else{
-    article = ref({
+    article.value = {
     aid: -1,
-    title: null,
+    title: "",
     content: "",
     authorId: user.value.uid,
     create_time: null,
     classify: null,
     tags: [],
     status: "创作中",
+    };
+  }
+
+  aid.value = router.currentRoute.value.query.aid;
+  console.log(aid.value);
+  if(aid.value != undefined) {
+    $api.articleApi.getArticleByAid({
+      aid : aid.value
+    }).then((res) => {
+      article.value = res.data.data;
+      article.value.tags = JSON.parse(res.data.data.tags);
+     // console.log(article.value);
     });
   }
+
   console.log(article.value);
 
   store.commit("setArticle", article.value);

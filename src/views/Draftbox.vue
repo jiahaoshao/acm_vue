@@ -199,7 +199,7 @@ const goToSpace = (uid) => {
 };
 
 const goToArticle = (aid) => {
-  router.push({ path: `/article/${aid}` });
+  router.push({ path: "/release", query: { aid: aid } })
 };
 
 
