@@ -134,7 +134,16 @@ const { image_url } = myJson;
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api;
-let article = ref({});
+const article = ref({
+      aid: -1,
+      title: "",
+      content: "",
+      authorId: 0,
+      create_time: null,
+      classify: null,
+      tags: [],
+      status: "创作中",
+    });
 
 const user = ref({});
 const newTag = ref(""); // 用于存储新标签的输入值
@@ -146,30 +155,19 @@ onMounted(() => {
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
     user.value = JSON.parse(storedUser);
-    //image.value = image_url + user.value.avatar;
     imageBase64.value = user.value.avatar;
   }
-
   //localStorage.removeItem("article");
   const storedArticle = localStorage.getItem("article");
-  if(storedArticle) {
+  if(storedArticle != "null" && storedArticle) {
     article.value = JSON.parse(storedArticle);
-  } else{
-    article.value = {
-    aid: -1,
-    title: "",
-    content: "",
-    authorId: user.value.uid,
-    create_time: null,
-    classify: null,
-    tags: [],
-    status: "创作中",
-    };
+  } else {
+    article.value.authorId = user.value.uid;
   }
 
   aid.value = router.currentRoute.value.query.aid;
-  console.log(aid.value);
-  if(aid.value != undefined) {
+  
+  if(aid.value) {
     $api.articleApi.getArticleByAid({
       aid : aid.value
     }).then((res) => {
@@ -178,8 +176,6 @@ onMounted(() => {
      // console.log(article.value);
     });
   }
-
-  console.log(article.value);
 
   store.commit("setArticle", article.value);
 

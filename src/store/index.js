@@ -27,6 +27,8 @@ export default createStore({
       state.user = null
       localStorage.removeItem("avatar")
       state.avatar = null
+      localStorage.removeItem("article")
+      state.article = null
     },
     setArticle(state, article) {
       state.article = article
