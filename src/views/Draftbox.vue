@@ -109,10 +109,14 @@
     <!-- 主内容区域 -->
     <div class="main-content">
       <div class="article-container">
+
+      <div class="article-card">
+        <div style="font-size: 20px; font-weight: bold; color: #333333;">草稿</div>
+      </div>
     <div v-for="article in articles" :key="article.aid" class="article-card" @click="goToArticle(article.aid)" style="cursor: pointer">
       <div class="author-info" v-if="article.author">
-        <span class="author-name" @click="goToSpace(article.author.uid)" style="cursor: pointer">草稿</span>
-        <span class="create-time">{{ article.formattedDate }}</span>
+        <span class="author-name" @click="goToSpace(article.author.uid)" style="cursor: pointer">{{ article.formattedDate }}</span>
+        <!-- <span class="create-time">{{ article.formattedDate }}</span> -->
       </div>
       <h3 class="article-title">{{ article.title }}</h3>
       <!-- <div class="article-content">{{ article.summary }}</div> -->

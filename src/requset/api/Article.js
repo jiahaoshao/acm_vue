@@ -10,11 +10,11 @@ const articleApi = {
       }
     });
   },
-  uploadArticleImages(params){
+  uploadArticleImages(formData){
     return axios({
-        url: "github/upload",
+        url: "/articles/upload_article_images",
         method: "post",
-        data: params,
+        data: formData,
         headers:{
             'Content-Type': 'multipart/form-data',
         }

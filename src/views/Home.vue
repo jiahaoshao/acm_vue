@@ -4,8 +4,10 @@
     <div class="topbar">
       <nav>
         <ul class="left-nav">
-          <li><router-link to="/home/home2">首页</router-link></li>
+          <li><router-link to="/home/home2">社区</router-link></li>
           <li><a href="#/ai" target="'_blank'">AI中心</a></li>
+          <li><a href="#/ai" target="'_blank'">集市</a></li>
+          <li><a href="#/ai" target="'_blank'">活动中心</a></li>
         </ul>
 
         <ul class="search-bar">
@@ -120,10 +122,10 @@
         </ul>
       </nav>
     </div>
-
     <!-- 主内容区域 -->
     <div class="main-content">
       <router-view></router-view>
+      <Sidebar />
       <!-- 渲染子路由 -->
     </div>
   </div>
@@ -135,6 +137,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import myJson from "@/../public/static/config.json";
 import { ElMessage } from "element-plus";
+import Sidebar from "@/components/Sidebar.vue";
 
 const { image_url } = myJson;
 
@@ -405,5 +408,15 @@ const signout = () => {
 .search-input .el-button {
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
+}
+
+.app-layout {
+  display: flex;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 60px;
+  transition: margin-left 0.3s;
 }
 </style>

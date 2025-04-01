@@ -102,35 +102,28 @@
           </el-tag>
         </div>
       </div>
-      <v-md-editor
-        v-model="article.content"
-        height="700px"
-        :tab-size="4"
-        :autofocus="true"
-        :disabled-menus="[]"
-        @upload-image="handleUploadImage"
-        @save="saveArticle"
-        left-toolbar="undo redo clear | h bold italic strikethrough quote | ul ol table hr | link image code | save tip emoji todo-list"
-      ></v-md-editor>
+      <!-- 富文本编辑器 -->
+      <QuillEditor v-model="article.content"  />
       <div class="button-container">
         <el-button class="release-button" @click="Release">发布</el-button>
         <el-button class="draft-button" @click="Draft">存草稿</el-button>
       </div>
-      <!-- <img referrerpolicy="no-referrer" src="https://gitee.com/sauerkraut001/picture-bed/raw/master/uploadimg/2024-12/1733306903017_fce2a147-bd2e-4404-ab9d-1d06e2ebb1e6.png" alt="avatar"/> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { getCurrentInstance, onMounted, ref } from "vue";
-import myJson from "@/../public/static/config.json";
+import { getCurrentInstance, onMounted, ref, reactive, watch, toRaw } from "vue";
+import config from "@/../public/static/config.json";
 import { ElLoading, ElMessage } from "element-plus";
 import { useStore } from "vuex";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
+import QuillEditor from '@/components/QuillEditor.vue';
+
 const aid = ref();
 const router = useRouter();
 const store = useStore();
-const { image_url } = myJson;
+const image_url = config.image_url;
 const globalProperties =
   getCurrentInstance().appContext.config.globalProperties; // 获取全局挂载
 const $api = globalProperties.$api;
@@ -594,11 +587,13 @@ const Draft = () => {
   flex-direction: column; /* 垂直排列 */
   gap: 10px;
   margin-bottom: 20px;
+
 }
 .input-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: center; /* 水平居中 */
 }
 .label {
   min-width: 60px; /* 标签文字最小宽度 */
@@ -626,5 +621,13 @@ const Draft = () => {
 /* 新增占位元素样式 */
 .spacer {
   flex-grow: 1;
+}
+
+.ql-container {
+	height: calc(100% - 42px);
+}
+
+.ql-editor {
+  height: 500px;
 }
 </style>

@@ -1,3 +1,6 @@
+const config = require("./public/static/config.json");
+
+const api_url = config.api_url;
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -9,7 +12,7 @@ module.exports = defineConfig({
     https: true, //是否开启https协议
     proxy: {
       '/api': {
-        target: 'https://127.0.0.1:8181/', // 目标服务器地址,也就是后端服务地址
+        target: api_url, // 目标服务器地址,也就是后端服务地址
         changeOrigin: true, // 是否改变源地址
         pathRewrite: {
           '^/api': '' // 重写路径
